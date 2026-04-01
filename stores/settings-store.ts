@@ -10,7 +10,6 @@ import {
   inferPreset,
 } from "@/lib/design-presets";
 import {
-  defaultSocialProfile,
   resolveSocialProfile,
 } from "@/lib/social-profile";
 
@@ -40,6 +39,7 @@ interface SettingsState {
 
 const defaultWidth = defaultCanvasSize.width;
 const defaultHeight = defaultCanvasSize.height;
+const defaultSocialState = resolveSocialProfile();
 
 const useSettingsStore = create<SettingsState>()(
   persist(
@@ -50,9 +50,9 @@ const useSettingsStore = create<SettingsState>()(
       viewMode: "短卡片",
       hideOverflow: false,
       selectedTheme: "默认",
-      socialProfileName: defaultSocialProfile.name,
-      socialProfileTimeLabel: defaultSocialProfile.timeLabel,
-      socialProfileAvatarUrl: defaultSocialProfile.avatarUrl,
+      socialProfileName: defaultSocialState.name,
+      socialProfileTimeLabel: defaultSocialState.timeLabel,
+      socialProfileAvatarUrl: defaultSocialState.avatarUrl,
       setCardWidth: (cardWidth) => {
         const { selectedPreset } = get();
 
@@ -98,7 +98,7 @@ const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: "settings-storage",
-      version: 3,
+      version: 4,
       storage: createJSONStorage(() => localStorage),
       migrate: (persistedState) => {
         const state = persistedState as SettingsState | undefined;
@@ -111,9 +111,9 @@ const useSettingsStore = create<SettingsState>()(
             viewMode: "短卡片" as ViewMode,
             hideOverflow: false,
             selectedTheme: "默认",
-            socialProfileName: defaultSocialProfile.name,
-            socialProfileTimeLabel: defaultSocialProfile.timeLabel,
-            socialProfileAvatarUrl: defaultSocialProfile.avatarUrl,
+            socialProfileName: defaultSocialState.name,
+            socialProfileTimeLabel: defaultSocialState.timeLabel,
+            socialProfileAvatarUrl: defaultSocialState.avatarUrl,
           };
         }
 

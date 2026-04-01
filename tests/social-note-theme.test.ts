@@ -26,3 +26,15 @@ test("social-note theme reads profile content from shared social profile config"
   assert.match(cardText, /useSettingsStore/);
   assert.match(cardText, /resolveSocialProfile/);
 });
+
+test("settings sidebar supports avatar upload flow", async () => {
+  const sidebarText = await readFile(
+    new URL("../components/workbench/settings-sidebar.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(sidebarText, /FileReader/);
+  assert.match(sidebarText, /readAsDataURL/);
+  assert.match(sidebarText, /type="file"/);
+  assert.match(sidebarText, /setSocialProfileAvatarUrl\(dataUrl\)/);
+});

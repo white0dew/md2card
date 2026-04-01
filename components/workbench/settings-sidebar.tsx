@@ -1,10 +1,20 @@
 "use client";
 
+import { useId, useState } from "react";
 import { configNames } from "@/lib/card-registry";
 import { designPresets, type DesignPresetId } from "@/lib/design-presets";
+import { defaultSocialProfile } from "@/lib/social-profile";
 import useSettingsStore, { viewModes } from "@/stores/settings-store";
 
 const presetOptions = Object.entries(designPresets) as [DesignPresetId, (typeof designPresets)[DesignPresetId]][];
+const supportedAvatarTypes = [
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+  "image/gif",
+  "image/svg+xml",
+];
+const maxAvatarSizeInBytes = 2 * 1024 * 1024;
 
 export default function SettingsSidebar() {
   const {
@@ -28,6 +38,48 @@ export default function SettingsSidebar() {
     setSocialProfileAvatarUrl,
   } = useSettingsStore();
   const presetMeta = designPresets[selectedPreset];
+  const avatarUploadId = useId();
+  const [avatarError, setAvatarError] = useState<string | null>(null);
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) {
+      return;
+    }
+
+    if (!supportedAvatarTypes.includes(file.type)) {
+      setAvatarError("仅支持 PNG、JPEG、WEBP、GIF、SVG 格式。请改用图片地址或重新选择文件。");
+      return;
+    }
+
+    if (file.size > maxAvatarSizeInBytes) {
+      setAvatarError("图片需小于 2MB。请压缩后重新上传，或改用公网 URL。");
+      return;
+    }
+
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (typeof reader.result === "string") {
+            resolve(reader.result);
+            return;
+          }
+
+          reject(new Error("读取头像失败"));
+        };
+        reader.onerror = () => reject(new Error("读取头像失败"));
+        reader.readAsDataURL(file);
+      });
+
+      setSocialProfileAvatarUrl(dataUrl);
+      setAvatarError(null);
+    } catch {
+      setAvatarError("读取头像失败，请重试，或改用公网 URL。");
+    }
+  };
 
   return (
     <aside className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_24px_60px_rgba(15,23,42,0.08)] xl:sticky xl:top-5 xl:max-h-[calc(100vh-112px)] xl:overflow-auto">
@@ -167,7 +219,7 @@ export default function SettingsSidebar() {
             <div>
               <p className="text-sm font-medium text-slate-700">社交资料</p>
               <p className="mt-1 text-xs leading-5 text-slate-500">
-                仅作用于第 1 张卡片。头像建议使用 `public/` 下路径或支持跨域访问的图片地址。
+                仅作用于第 1 张卡片。头像支持公网地址、`public/` 路径，或上传图片后保存到本地缓存。
               </p>
             </div>
 
@@ -187,7 +239,7 @@ export default function SettingsSidebar() {
               <input
                 className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700"
                 onChange={(event) => setSocialProfileTimeLabel(event.target.value)}
-                placeholder="例如：03/30"
+                placeholder="默认自动填入当天日期"
                 type="text"
                 value={socialProfileTimeLabel}
               />
@@ -197,12 +249,47 @@ export default function SettingsSidebar() {
               <span className="mb-2 block">头像地址</span>
               <input
                 className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700"
-                onChange={(event) => setSocialProfileAvatarUrl(event.target.value)}
-                placeholder="/social-avatar.svg"
+                onChange={(event) => {
+                  setSocialProfileAvatarUrl(event.target.value);
+                  setAvatarError(null);
+                }}
+                placeholder="https://example.com/avatar.png 或 /social-avatar.svg"
                 type="text"
                 value={socialProfileAvatarUrl}
               />
             </label>
+
+            <div className="space-y-3 rounded-xl border border-dashed border-slate-300 bg-white/70 p-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <label
+                  className="inline-flex cursor-pointer items-center rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
+                  htmlFor={avatarUploadId}
+                >
+                  上传本地头像
+                </label>
+                <input
+                  accept={supportedAvatarTypes.join(",")}
+                  className="sr-only"
+                  id={avatarUploadId}
+                  onChange={handleAvatarUpload}
+                  type="file"
+                />
+                <button
+                  className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
+                  onClick={() => {
+                    setSocialProfileAvatarUrl(defaultSocialProfile.avatarUrl);
+                    setAvatarError(null);
+                  }}
+                  type="button"
+                >
+                  恢复默认头像
+                </button>
+              </div>
+              <p className="text-xs leading-5 text-slate-500">
+                支持 PNG、JPEG、WEBP、GIF、SVG，文件需小于 2MB。上传后会保存在浏览器本地缓存。
+              </p>
+              {avatarError ? <p className="text-xs text-rose-500">{avatarError}</p> : null}
+            </div>
           </div>
         ) : null}
       </div>
