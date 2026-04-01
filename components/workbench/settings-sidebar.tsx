@@ -27,6 +27,8 @@ export default function SettingsSidebar() {
     socialProfileName,
     socialProfileTimeLabel,
     socialProfileAvatarUrl,
+    socialFirstPageTopOffset,
+    socialAvatarSize,
     setCardWidth,
     setCardHeight,
     setSelectedPreset,
@@ -36,6 +38,8 @@ export default function SettingsSidebar() {
     setSocialProfileName,
     setSocialProfileTimeLabel,
     setSocialProfileAvatarUrl,
+    setSocialFirstPageTopOffset,
+    setSocialAvatarSize,
   } = useSettingsStore();
   const presetMeta = designPresets[selectedPreset];
   const avatarUploadId = useId();
@@ -258,6 +262,45 @@ export default function SettingsSidebar() {
                 value={socialProfileAvatarUrl}
               />
             </label>
+
+            <div className="flex gap-4">
+              <label className="flex-1 text-sm text-slate-600">
+                <span className="mb-2 block">首图顶部空白</span>
+                <div className="flex items-center gap-2">
+                  <input
+                    aria-label="首图顶部空白"
+                    className="w-20 rounded border border-slate-200 bg-white px-2 py-1 text-sm text-slate-700"
+                    onChange={(event) => {
+                      const value = Number.parseInt(event.target.value, 10);
+                      if (!Number.isNaN(value)) {
+                        setSocialFirstPageTopOffset(value);
+                      }
+                    }}
+                    type="number"
+                    value={socialFirstPageTopOffset}
+                  />
+                  <span>px</span>
+                </div>
+              </label>
+              <label className="flex-1 text-sm text-slate-600">
+                <span className="mb-2 block">头像尺寸</span>
+                <div className="flex items-center gap-2">
+                  <input
+                    aria-label="头像尺寸"
+                    className="w-20 rounded border border-slate-200 bg-white px-2 py-1 text-sm text-slate-700"
+                    onChange={(event) => {
+                      const value = Number.parseInt(event.target.value, 10);
+                      if (!Number.isNaN(value)) {
+                        setSocialAvatarSize(value);
+                      }
+                    }}
+                    type="number"
+                    value={socialAvatarSize}
+                  />
+                  <span>px</span>
+                </div>
+              </label>
+            </div>
 
             <div className="space-y-3 rounded-xl border border-dashed border-slate-300 bg-white/70 p-3">
               <div className="flex flex-wrap items-center gap-3">

@@ -26,6 +26,8 @@ interface SettingsState {
   socialProfileName: string;
   socialProfileTimeLabel: string;
   socialProfileAvatarUrl: string;
+  socialFirstPageTopOffset: number;
+  socialAvatarSize: number;
   setCardWidth: (width: number) => void;
   setCardHeight: (height: number) => void;
   setSelectedPreset: (preset: DesignPresetId) => void;
@@ -35,11 +37,28 @@ interface SettingsState {
   setSocialProfileName: (name: string) => void;
   setSocialProfileTimeLabel: (timeLabel: string) => void;
   setSocialProfileAvatarUrl: (avatarUrl: string) => void;
+  setSocialFirstPageTopOffset: (offset: number) => void;
+  setSocialAvatarSize: (size: number) => void;
 }
 
 const defaultWidth = defaultCanvasSize.width;
 const defaultHeight = defaultCanvasSize.height;
 const defaultSocialState = resolveSocialProfile();
+const minSocialFirstPageTopOffset = 0;
+const maxSocialFirstPageTopOffset = 120;
+const minSocialAvatarSize = 32;
+const maxSocialAvatarSize = 96;
+
+function clampSocialFirstPageTopOffset(offset: number) {
+  return Math.min(
+    maxSocialFirstPageTopOffset,
+    Math.max(minSocialFirstPageTopOffset, offset),
+  );
+}
+
+function clampSocialAvatarSize(size: number) {
+  return Math.min(maxSocialAvatarSize, Math.max(minSocialAvatarSize, size));
+}
 
 const useSettingsStore = create<SettingsState>()(
   persist(
@@ -53,6 +72,8 @@ const useSettingsStore = create<SettingsState>()(
       socialProfileName: defaultSocialState.name,
       socialProfileTimeLabel: defaultSocialState.timeLabel,
       socialProfileAvatarUrl: defaultSocialState.avatarUrl,
+      socialFirstPageTopOffset: defaultSocialState.firstPageTopOffset,
+      socialAvatarSize: defaultSocialState.avatarSize,
       setCardWidth: (cardWidth) => {
         const { selectedPreset } = get();
 
@@ -95,10 +116,18 @@ const useSettingsStore = create<SettingsState>()(
         set({ socialProfileTimeLabel }),
       setSocialProfileAvatarUrl: (socialProfileAvatarUrl) =>
         set({ socialProfileAvatarUrl }),
+      setSocialFirstPageTopOffset: (socialFirstPageTopOffset) =>
+        set({
+          socialFirstPageTopOffset: clampSocialFirstPageTopOffset(
+            socialFirstPageTopOffset,
+          ),
+        }),
+      setSocialAvatarSize: (socialAvatarSize) =>
+        set({ socialAvatarSize: clampSocialAvatarSize(socialAvatarSize) }),
     }),
     {
       name: "settings-storage",
-      version: 4,
+      version: 5,
       storage: createJSONStorage(() => localStorage),
       migrate: (persistedState) => {
         const state = persistedState as SettingsState | undefined;
@@ -114,6 +143,8 @@ const useSettingsStore = create<SettingsState>()(
             socialProfileName: defaultSocialState.name,
             socialProfileTimeLabel: defaultSocialState.timeLabel,
             socialProfileAvatarUrl: defaultSocialState.avatarUrl,
+            socialFirstPageTopOffset: defaultSocialState.firstPageTopOffset,
+            socialAvatarSize: defaultSocialState.avatarSize,
           };
         }
 
@@ -130,6 +161,12 @@ const useSettingsStore = create<SettingsState>()(
           avatarUrl: state.socialProfileAvatarUrl,
           name: state.socialProfileName,
           timeLabel: state.socialProfileTimeLabel,
+          firstPageTopOffset: clampSocialFirstPageTopOffset(
+            state.socialFirstPageTopOffset ?? defaultSocialState.firstPageTopOffset,
+          ),
+          avatarSize: clampSocialAvatarSize(
+            state.socialAvatarSize ?? defaultSocialState.avatarSize,
+          ),
         });
 
         return {
@@ -141,6 +178,8 @@ const useSettingsStore = create<SettingsState>()(
           socialProfileName: socialProfile.name,
           socialProfileTimeLabel: socialProfile.timeLabel,
           socialProfileAvatarUrl: socialProfile.avatarUrl,
+          socialFirstPageTopOffset: socialProfile.firstPageTopOffset,
+          socialAvatarSize: socialProfile.avatarSize,
         };
       },
     },

@@ -2,11 +2,15 @@ export interface SocialProfile {
   name: string;
   timeLabel: string;
   avatarUrl: string;
+  firstPageTopOffset: number;
+  avatarSize: number;
 }
 
 export const defaultSocialProfile: Omit<SocialProfile, "timeLabel"> = {
   name: "阿亮",
   avatarUrl: "/social-avatar.svg",
+  firstPageTopOffset: 0,
+  avatarSize: 52,
 };
 
 export function getDefaultSocialProfileTimeLabel(now = new Date()) {
@@ -23,5 +27,8 @@ export function resolveSocialProfile(
     name: profile?.name?.trim() || defaultSocialProfile.name,
     timeLabel: profile?.timeLabel?.trim() || getDefaultSocialProfileTimeLabel(now),
     avatarUrl: profile?.avatarUrl?.trim() || defaultSocialProfile.avatarUrl,
+    firstPageTopOffset:
+      profile?.firstPageTopOffset ?? defaultSocialProfile.firstPageTopOffset,
+    avatarSize: profile?.avatarSize ?? defaultSocialProfile.avatarSize,
   };
 }

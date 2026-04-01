@@ -34,6 +34,8 @@ test("resolveSocialProfile preserves trimmed custom values", () => {
       avatarUrl: "https://example.com/avatar.png",
       name: "阿明",
       timeLabel: "今天",
+      firstPageTopOffset: 0,
+      avatarSize: 52,
     },
   );
 });

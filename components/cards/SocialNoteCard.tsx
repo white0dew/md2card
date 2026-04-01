@@ -246,27 +246,40 @@ const Card: FC<CardProps> = ({
   const socialProfileName = useSettingsStore((state) => state.socialProfileName);
   const socialProfileTimeLabel = useSettingsStore((state) => state.socialProfileTimeLabel);
   const socialProfileAvatarUrl = useSettingsStore((state) => state.socialProfileAvatarUrl);
+  const socialFirstPageTopOffset = useSettingsStore(
+    (state) => state.socialFirstPageTopOffset,
+  );
+  const socialAvatarSize = useSettingsStore((state) => state.socialAvatarSize);
   const socialProfile = resolveSocialProfile(
     {
       avatarUrl: socialProfileAvatarUrl,
       name: socialProfileName,
       timeLabel: socialProfileTimeLabel,
+      firstPageTopOffset: socialFirstPageTopOffset,
+      avatarSize: socialAvatarSize,
     },
   );
 
   return (
     <CardContainer ref={contentRef as Ref<HTMLElement>} style={{ width, height }}>
       {showLeadMeta ? (
-        <div className="social-meta">
-          <img alt="avatar" className="social-avatar" src={socialProfile.avatarUrl} />
-          <div>
-            <div className="social-name">{socialProfile.name}</div>
-            <div className="social-time">{socialProfile.timeLabel}</div>
+        <div style={{ paddingTop: socialProfile.firstPageTopOffset }}>
+          <div className="social-meta">
+            <img
+              alt="avatar"
+              className="social-avatar"
+              src={socialProfile.avatarUrl}
+              style={{ height: socialProfile.avatarSize, width: socialProfile.avatarSize }}
+            />
+            <div>
+              <div className="social-name">{socialProfile.name}</div>
+              <div className="social-time">{socialProfile.timeLabel}</div>
+            </div>
           </div>
+          {title ? (
+            <h1 className="social-title" dangerouslySetInnerHTML={{ __html: title }} />
+          ) : null}
         </div>
-      ) : null}
-      {showLeadMeta && title ? (
-        <h1 className="social-title" dangerouslySetInnerHTML={{ __html: title }} />
       ) : null}
       <div
         className="card-content"
@@ -280,7 +293,14 @@ const Card: FC<CardProps> = ({
 const ThemeConfig: CardConfig = {
   name: "社交图文",
   component: Card,
-  getUsableHeight: (pageHeight) => getSocialNoteUsableHeight(pageHeight),
+  getUsableHeight: (pageHeight) => {
+    const state = useSettingsStore.getState();
+    return getSocialNoteUsableHeight(
+      pageHeight,
+      state.socialFirstPageTopOffset,
+      state.socialAvatarSize,
+    );
+  },
   renderer: render,
 };
 
