@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
+  <rect width="1200" height="630" rx="36" fill="#E2E8F0" />
+  <rect x="56" y="56" width="1088" height="518" rx="28" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="8" stroke-dasharray="20 18" />
+  <circle cx="184" cy="182" r="56" fill="#38BDF8" fill-opacity="0.18" />
+  <circle cx="1010" cy="470" r="72" fill="#F97316" fill-opacity="0.14" />
+  <path d="M180 182L216 218L292 142" stroke="#0284C7" stroke-width="22" stroke-linecap="round" stroke-linejoin="round" />
+  <rect x="324" y="150" width="462" height="34" rx="17" fill="#CBD5E1" />
+  <rect x="324" y="208" width="360" height="26" rx="13" fill="#E2E8F0" />
+  <rect x="112" y="332" width="976" height="24" rx="12" fill="#CBD5E1" />
+  <rect x="112" y="392" width="920" height="24" rx="12" fill="#CBD5E1" />
+  <rect x="112" y="452" width="744" height="24" rx="12" fill="#CBD5E1" />
+  <text x="112" y="108" fill="#475569" font-family="Inter, Arial, sans-serif" font-size="38" font-weight="700">MD2Card Placeholder</text>
+  <text x="112" y="540" fill="#64748B" font-family="Inter, Arial, sans-serif" font-size="28">Local preview asset for stable export and testing.</text>
+</svg>
