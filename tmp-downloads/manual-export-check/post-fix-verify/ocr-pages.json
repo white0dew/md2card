@@ -1,0 +1,7 @@
+[
+  "POP！\n一级标题\n这是一个很长很长的段落，用于测试分页系统对普通\n文本的智能分割能力。这段话会被自动拆分到多个页\n面中，确保页面不会出现内容溢出问题。",
+  "POP！\n二级标题\n• 无序列表项 A\n• 无序列表项 B\n• 无序列表项C\n1. 有序项一\n2. 有序项二\n3. 有序项三",
+  "表格示例\n姓名\nAlice\nBob\nCharlie\nDiana\nEthan\nFiona\nGeorge\n分数\n95\n88\n92\n84\n77\n89\n91\nPOP！\n等级\nA\nB\nA\nB\nC\nB\nA",
+  "POP！\n图片示例\nMD2Card Placeholder\nLocal preview asset for stable export and testing.\n引用和代码\n| 这是一段引用内容，用于测试分页逻辑。\n行内代码示例：'console.Log（'Hello'）",
+  "POP！\nfunction greet （name）｛\nconsole.1og（\"He11o \" + name）；\n｝\ngreet （\"World\"）；\n分页测试结束。"
+]

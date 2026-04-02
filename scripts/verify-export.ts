@@ -216,7 +216,18 @@ async function main() {
       options.sessionName,
       [
         "eval",
-        `JSON.stringify(Array.from(document.querySelectorAll("#preview article")).map((article) => article.innerText))`,
+        `
+          JSON.stringify((() => {
+            const preview = document.getElementById("preview");
+            if (!preview) {
+              return [];
+            }
+
+            const pageNodes = Array.from(preview.querySelectorAll(".pages-wrapper > *"));
+            const exportTargets = pageNodes.length > 0 ? pageNodes : [preview];
+            return exportTargets.map((target) => target.innerText);
+          })())
+        `,
       ],
     ),
   );

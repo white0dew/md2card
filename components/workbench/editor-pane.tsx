@@ -20,6 +20,7 @@ import {
   type AlignmentOption,
   type FormatAction,
 } from "@/lib/editor-format";
+import usePersistHydration from "@/hooks/use-persist-hydration";
 import useEditorStore from "@/stores/editor-store";
 
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
@@ -56,7 +57,9 @@ const alignmentLabels: Record<AlignmentOption, string> = {
 };
 
 export default function EditorPane() {
-  const { content, setContent } = useEditorStore();
+  const content = useEditorStore((state) => state.content);
+  const setContent = useEditorStore((state) => state.setContent);
+  const editorReady = usePersistHydration(useEditorStore);
   const [isAlignmentMenuOpen, setAlignmentMenuOpen] = useState(false);
   const editorRef = useRef<{
     getSelection: () => unknown;
@@ -157,39 +160,45 @@ export default function EditorPane() {
         </div>
       </div>
       <div className="min-h-[520px] flex-1 overflow-hidden xl:min-h-0">
-        <MonacoEditor
-          className="h-full"
-          height="100%"
-          language="markdown"
-          onChange={(value) => setContent(value ?? "")}
-          onMount={(editor) => {
-            editorRef.current = editor as unknown as {
-              getSelection: () => unknown;
-              getModel: () => { getValueInRange: (range: unknown) => string } | null;
-              executeEdits: (
-                source: string,
-                edits: { range: unknown; text: string }[],
-              ) => void;
-            };
-          }}
-          options={{
-            automaticLayout: true,
-            minimap: { enabled: false },
-            fontSize: 16,
-            lineNumbers: "on",
-            wordWrap: "on",
-            contextmenu: true,
-            padding: {
-              top: 20,
-            },
-            scrollbar: {
-              vertical: "visible",
-              horizontal: "visible",
-            },
-          }}
-          theme="light"
-          value={content}
-        />
+        {editorReady ? (
+          <MonacoEditor
+            className="h-full"
+            height="100%"
+            language="markdown"
+            onChange={(value) => setContent(value ?? "")}
+            onMount={(editor) => {
+              editorRef.current = editor as unknown as {
+                getSelection: () => unknown;
+                getModel: () => { getValueInRange: (range: unknown) => string } | null;
+                executeEdits: (
+                  source: string,
+                  edits: { range: unknown; text: string }[],
+                ) => void;
+              };
+            }}
+            options={{
+              automaticLayout: true,
+              minimap: { enabled: false },
+              fontSize: 16,
+              lineNumbers: "on",
+              wordWrap: "on",
+              contextmenu: true,
+              padding: {
+                top: 20,
+              },
+              scrollbar: {
+                vertical: "visible",
+                horizontal: "visible",
+              },
+            }}
+            theme="light"
+            value={content}
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center bg-slate-50 text-sm text-slate-500">
+            正在恢复编辑内容...
+          </div>
+        )}
       </div>
     </section>
   );

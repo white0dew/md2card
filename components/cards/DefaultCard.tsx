@@ -107,10 +107,10 @@ const CardContainer = styled.div`
     &::before {
     content: "";
     position: absolute;
-    top: -15px;
-    left: -15px;
-    width: 50px;
-    height: 50px;
+    top: 12px;
+    left: 12px;
+    width: 42px;
+    height: 42px;
     background: #ff4081;
     clip-path: polygon(
       50% 0%,
@@ -130,10 +130,10 @@ const CardContainer = styled.div`
   &::after {
     content: "POP!";
     position: absolute;
-    top: -10px;
-    right: -10px;
-    width: 50px;
-    height: 50px;
+    top: 12px;
+    right: 12px;
+    width: 48px;
+    height: 48px;
     background: #2196f3;
     border-radius: 50%;
     display: flex;
@@ -141,7 +141,7 @@ const CardContainer = styled.div`
     justify-content: center;
     color: white;
     font-weight: bold;
-    font-size: 14px;
+    font-size: 12px;
     z-index: 1;
   }
 

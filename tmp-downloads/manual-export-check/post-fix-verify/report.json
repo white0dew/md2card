@@ -1,0 +1,60 @@
+{
+  "markdownPath": "/Users/jun/Desktop/Code/web/md2card/tmp-downloads/manual-export-check/default-smoke.md",
+  "zipPath": "/Users/jun/Desktop/Code/web/md2card/tmp-downloads/manual-export-check/post-fix-verify/downloads/md2card-20260402200944.zip",
+  "downloadPath": "/Users/jun/Desktop/Code/web/md2card/tmp-downloads/manual-export-check/post-fix-verify/downloads/md2card-20260402200944.zip",
+  "screenshotPath": "/Users/jun/Desktop/Code/web/md2card/tmp-downloads/manual-export-check/post-fix-verify/preview.png",
+  "imagePaths": [
+    "/Users/jun/Desktop/Code/web/md2card/tmp-downloads/manual-export-check/post-fix-verify/unzip/md2card-1.png",
+    "/Users/jun/Desktop/Code/web/md2card/tmp-downloads/manual-export-check/post-fix-verify/unzip/md2card-2.png",
+    "/Users/jun/Desktop/Code/web/md2card/tmp-downloads/manual-export-check/post-fix-verify/unzip/md2card-3.png",
+    "/Users/jun/Desktop/Code/web/md2card/tmp-downloads/manual-export-check/post-fix-verify/unzip/md2card-4.png",
+    "/Users/jun/Desktop/Code/web/md2card/tmp-downloads/manual-export-check/post-fix-verify/unzip/md2card-5.png"
+  ],
+  "expectedPages": [
+    "一级标题\n\n这是一个很长很长的段落，用于测试分页系统对普通文本的智能分割能力。这段话会被自动拆分到多个页面中，确保页面不会出现内容溢出问题。\n\n\n",
+    "二级标题\n无序列表项 A\n无序列表项 B\n无序列表项 C\n\n\n有序项一\n有序项二\n有序项三\n\n",
+    "表格示例\n姓名\t分数\t等级\nAlice\t95\tA\nBob\t88\tB\nCharlie\t92\tA\nDiana\t84\tB\nEthan\t77\tC\nFiona\t89\tB\nGeorge\t91\tA",
+    "图片示例\n\n\n\n引用和代码\n这是一段引用内容，用于测试分页逻辑。\n\n\n\n行内代码示例：console.log('Hello')",
+    "\n\n    function greet(name) {\n  console.log(\"Hello \" + name);\n}\ngreet(\"World\");\n  \n\n\n\n\n\n分页测试结束。"
+  ],
+  "actualPages": [
+    "POP！\n一级标题\n这是一个很长很长的段落，用于测试分页系统对普通\n文本的智能分割能力。这段话会被自动拆分到多个页\n面中，确保页面不会出现内容溢出问题。",
+    "POP！\n二级标题\n• 无序列表项 A\n• 无序列表项 B\n• 无序列表项C\n1. 有序项一\n2. 有序项二\n3. 有序项三",
+    "表格示例\n姓名\nAlice\nBob\nCharlie\nDiana\nEthan\nFiona\nGeorge\n分数\n95\n88\n92\n84\n77\n89\n91\nPOP！\n等级\nA\nB\nA\nB\nC\nB\nA",
+    "POP！\n图片示例\nMD2Card Placeholder\nLocal preview asset for stable export and testing.\n引用和代码\n| 这是一段引用内容，用于测试分页逻辑。\n行内代码示例：'console.Log（'Hello'）",
+    "POP！\nfunction greet （name）｛\nconsole.1og（\"He11o \" + name）；\n｝\ngreet （\"World\"）；\n分页测试结束。"
+  ],
+  "missingByPage": [
+    {
+      "page": 1,
+      "missingLines": []
+    },
+    {
+      "page": 2,
+      "missingLines": []
+    },
+    {
+      "page": 3,
+      "missingLines": [
+        "姓名\t分数\t等级",
+        "Alice\t95\tA",
+        "Bob\t88\tB",
+        "Charlie\t92\tA",
+        "Diana\t84\tB",
+        "Ethan\t77\tC",
+        "Fiona\t89\tB",
+        "George\t91\tA"
+      ]
+    },
+    {
+      "page": 4,
+      "missingLines": []
+    },
+    {
+      "page": 5,
+      "missingLines": [
+        "console.log(\"Hello \" + name);"
+      ]
+    }
+  ]
+}

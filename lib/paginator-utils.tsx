@@ -109,6 +109,29 @@ function createElementClone(source: HTMLElement) {
   return clone as HTMLElement;
 }
 
+function findHighestPassingIndex(
+  upperBound: number,
+  passes: (index: number) => boolean,
+) {
+  let low = 1;
+  let high = upperBound;
+  let best = 0;
+
+  while (low <= high) {
+    const middle = Math.floor((low + high) / 2);
+
+    if (passes(middle)) {
+      best = middle;
+      low = middle + 1;
+      continue;
+    }
+
+    high = middle - 1;
+  }
+
+  return best;
+}
+
 function findTextSplitLength(
   text: string,
   measuredRoot: HTMLElement,
@@ -197,21 +220,14 @@ function findRenderedLineSplitIndex(
 
   const maxBottom = getPageMaxBottom(currentPage, pageHeight);
   const range = document.createRange();
-  let lastFit = 0;
-
-  for (let index = 1; index <= fullText.length; index += 1) {
+  const lastFit = findHighestPassingIndex(fullText.length, (index) => {
     range.setStart(textNode, 0);
     range.setEnd(textNode, index);
     const rects = range.getClientRects();
     const lastRect = rects.item(rects.length - 1);
 
-    if (!lastRect || lastRect.bottom <= maxBottom + 0.5) {
-      lastFit = index;
-      continue;
-    }
-
-    break;
-  }
+    return !lastRect || lastRect.bottom <= maxBottom + 0.5;
+  });
 
   currentPage.removeChild(element);
   return lastFit;

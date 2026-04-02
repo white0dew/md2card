@@ -1,0 +1,57 @@
+PC
+一级标题
+这是一个很长很长的段落，用于测试分页系统对普通
+文本的智能分割能力。这段话会被自动拆分到多个页
+面中，确保页面不会出现内容溢出问题。
+===PAGE===
+二级标题
+• 无序列表项 A
+• 无序列表项 B
+• 无序列表项C
+1. 有序项一
+2. 有序项二
+3. 有序项三
+PC
+===PAGE===
+表格示例
+姓名
+Alice
+Bob
+Charlie
+Diana
+Ethan
+Fiona
+George
+分数
+95
+88
+92
+84
+77
+89
+91
+PC
+等级
+A
+B
+A
+B
+C
+B
+A
+===PAGE===
+PC
+图片示例
+MD2Card Placeholder
+Local preview asset for stable export and testing.
+引用和代码
+| 这是一段引用内容，用于测试分页逻辑。
+行内代码示例：'console.Log（'Hello'）
+===PAGE===
+PC
+function greet （name）｛
+console.1og（"He11o " + name）；
+｝
+greet （"World"）；
+分页测试结束。
+===PAGE===
