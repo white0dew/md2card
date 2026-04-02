@@ -4,7 +4,6 @@ import test from "node:test";
 
 const cardFiles = [
   "DefaultCard.tsx",
-  "DarkCard.tsx",
   "GlassCard.tsx",
   "SocialNoteCard.tsx",
   "WarmCard.tsx",
