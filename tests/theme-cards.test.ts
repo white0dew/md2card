@@ -12,7 +12,7 @@ test("shared theme factory exposes markdown renderer and themed card builder", a
   assert.match(factoryText, /export function createThemeCard/);
   assert.match(factoryText, /render\.heading/);
   assert.match(factoryText, /render\.table/);
-  assert.match(factoryText, /className=\"card-content\"/);
+  assert.match(factoryText, /className="card-content"/);
 });
 
 test("new themes customize key markdown blocks", async () => {

@@ -4,6 +4,9 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
+    "sync:monaco": "node scripts/sync-monaco-assets.mjs",
+    "predev": "pnpm sync:monaco",
+    "prebuild": "pnpm sync:monaco",
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",

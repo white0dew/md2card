@@ -1,10 +1,14 @@
 "use client";
 
-import type { FC, Ref } from "react";
+import type { CSSProperties, FC, Ref } from "react";
 import styled from "styled-components";
 import { Renderer, Tokens } from "marked";
 import { getSocialNoteUsableHeight } from "@/lib/card-measurements";
 import type { CardConfig, CardProps } from "@/lib/card-types";
+import {
+  defaultSocialNoteAccentColor,
+  defaultSocialNoteBackgroundColor,
+} from "@/lib/social-note-colors";
 import { resolveSocialProfile } from "@/lib/social-profile";
 import useSettingsStore from "@/stores/settings-store";
 
@@ -80,7 +84,7 @@ const CardContainer = styled.article`
   height: 100%;
   width: 100%;
   padding: 28px 28px 32px;
-  background: #fffdf7;
+  background: var(--social-background-color, ${defaultSocialNoteBackgroundColor});
   color: #171717;
   font-family: "Songti SC", "STSong", "Noto Serif SC", serif;
 
@@ -118,6 +122,7 @@ const CardContainer = styled.article`
     font-weight: 700;
     line-height: 1.1;
     letter-spacing: -0.02em;
+    color: var(--social-accent-color, ${defaultSocialNoteAccentColor});
   }
 
   .card-content {
@@ -139,6 +144,7 @@ const CardContainer = styled.article`
     font-size: 21px;
     line-height: 1.12;
     font-weight: 700;
+    color: var(--social-accent-color, ${defaultSocialNoteAccentColor});
   }
 
   .md-blockquote {
@@ -152,11 +158,12 @@ const CardContainer = styled.article`
 
   .md-strong {
     font-weight: 800;
-    color: #111;
+    color: var(--social-accent-color, ${defaultSocialNoteAccentColor});
   }
 
   .md-em {
     font-style: italic;
+    color: var(--social-accent-color, ${defaultSocialNoteAccentColor});
   }
 
   .md-image {
@@ -250,6 +257,8 @@ const Card: FC<CardProps> = ({
     (state) => state.socialFirstPageTopOffset,
   );
   const socialAvatarSize = useSettingsStore((state) => state.socialAvatarSize);
+  const socialBackgroundColor = useSettingsStore((state) => state.socialBackgroundColor);
+  const socialAccentColor = useSettingsStore((state) => state.socialAccentColor);
   const socialProfile = resolveSocialProfile(
     {
       avatarUrl: socialProfileAvatarUrl,
@@ -259,9 +268,15 @@ const Card: FC<CardProps> = ({
       avatarSize: socialAvatarSize,
     },
   );
+  const cardStyle = {
+    width,
+    height,
+    ["--social-background-color" as string]: socialBackgroundColor,
+    ["--social-accent-color" as string]: socialAccentColor,
+  } as CSSProperties;
 
   return (
-    <CardContainer ref={contentRef as Ref<HTMLElement>} style={{ width, height }}>
+    <CardContainer ref={contentRef as Ref<HTMLElement>} style={cardStyle}>
       {showLeadMeta ? (
         <div style={{ paddingTop: socialProfile.firstPageTopOffset }}>
           <div className="social-meta">

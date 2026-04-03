@@ -3,6 +3,11 @@
 import { useId, useState } from "react";
 import { configNames } from "@/lib/card-registry";
 import { designPresets, type DesignPresetId } from "@/lib/design-presets";
+import ColorPalettePicker from "@/components/workbench/color-palette-picker";
+import {
+  socialNoteAccentColors,
+  socialNoteBackgroundColors,
+} from "@/lib/social-note-colors";
 import { defaultSocialProfile } from "@/lib/social-profile";
 import useSettingsStore, { viewModes } from "@/stores/settings-store";
 
@@ -29,6 +34,8 @@ export default function SettingsSidebar() {
     socialProfileAvatarUrl,
     socialFirstPageTopOffset,
     socialAvatarSize,
+    socialBackgroundColor,
+    socialAccentColor,
     setCardWidth,
     setCardHeight,
     setSelectedPreset,
@@ -40,6 +47,8 @@ export default function SettingsSidebar() {
     setSocialProfileAvatarUrl,
     setSocialFirstPageTopOffset,
     setSocialAvatarSize,
+    setSocialBackgroundColor,
+    setSocialAccentColor,
   } = useSettingsStore();
   const presetMeta = designPresets[selectedPreset];
   const avatarUploadId = useId();
@@ -301,6 +310,20 @@ export default function SettingsSidebar() {
                 </div>
               </label>
             </div>
+
+            <ColorPalettePicker
+              label="背景颜色"
+              onChange={setSocialBackgroundColor}
+              options={socialNoteBackgroundColors}
+              value={socialBackgroundColor}
+            />
+
+            <ColorPalettePicker
+              label="重点字体颜色"
+              onChange={setSocialAccentColor}
+              options={socialNoteAccentColors}
+              value={socialAccentColor}
+            />
 
             <div className="space-y-3 rounded-xl border border-dashed border-slate-300 bg-white/70 p-3">
               <div className="flex flex-wrap items-center gap-3">

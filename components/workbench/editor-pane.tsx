@@ -1,5 +1,6 @@
 "use client";
 
+import { loader as monacoLoader } from "@monaco-editor/react";
 import dynamic from "next/dynamic";
 import { useEffect, useEffectEvent, useMemo, useRef, useState, type JSX } from "react";
 import {
@@ -20,8 +21,11 @@ import {
   type AlignmentOption,
   type FormatAction,
 } from "@/lib/editor-format";
+import { configureMonacoLoader } from "@/lib/monaco-loader";
 import usePersistHydration from "@/hooks/use-persist-hydration";
 import useEditorStore from "@/stores/editor-store";
+
+configureMonacoLoader(monacoLoader);
 
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
   ssr: false,

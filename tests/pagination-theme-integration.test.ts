@@ -12,6 +12,6 @@ test("pagination measurement locates card-content container", async () => {
     "utf8",
   );
 
-  assert.match(measurementText, /querySelector\("\.card-content"\)/);
-  assert.match(factoryText, /className=\"card-content\"/);
+  assert.match(measurementText, /querySelector\(".card-content"\)/);
+  assert.match(factoryText, /className="card-content"/);
 });

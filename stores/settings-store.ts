@@ -10,6 +10,12 @@ import {
   inferPreset,
 } from "@/lib/design-presets";
 import {
+  defaultSocialNoteAccentColor,
+  defaultSocialNoteBackgroundColor,
+  resolveSocialNoteAccentColor,
+  resolveSocialNoteBackgroundColor,
+} from "@/lib/social-note-colors";
+import {
   resolveSocialProfile,
 } from "@/lib/social-profile";
 
@@ -28,6 +34,8 @@ interface SettingsState {
   socialProfileAvatarUrl: string;
   socialFirstPageTopOffset: number;
   socialAvatarSize: number;
+  socialBackgroundColor: string;
+  socialAccentColor: string;
   setCardWidth: (width: number) => void;
   setCardHeight: (height: number) => void;
   setSelectedPreset: (preset: DesignPresetId) => void;
@@ -39,6 +47,8 @@ interface SettingsState {
   setSocialProfileAvatarUrl: (avatarUrl: string) => void;
   setSocialFirstPageTopOffset: (offset: number) => void;
   setSocialAvatarSize: (size: number) => void;
+  setSocialBackgroundColor: (color: string) => void;
+  setSocialAccentColor: (color: string) => void;
 }
 
 const defaultWidth = defaultCanvasSize.width;
@@ -73,6 +83,8 @@ function createDefaultSettingsState() {
     socialProfileAvatarUrl: defaultSocialState.avatarUrl,
     socialFirstPageTopOffset: defaultSocialState.firstPageTopOffset,
     socialAvatarSize: defaultSocialState.avatarSize,
+    socialBackgroundColor: defaultSocialNoteBackgroundColor,
+    socialAccentColor: defaultSocialNoteAccentColor,
   };
 }
 
@@ -151,11 +163,21 @@ const useSettingsStore = create<SettingsState>()(
           }),
         setSocialAvatarSize: (socialAvatarSize) =>
           set({ socialAvatarSize: clampSocialAvatarSize(socialAvatarSize) }),
+        setSocialBackgroundColor: (socialBackgroundColor) =>
+          set({
+            socialBackgroundColor: resolveSocialNoteBackgroundColor(
+              socialBackgroundColor,
+            ),
+          }),
+        setSocialAccentColor: (socialAccentColor) =>
+          set({
+            socialAccentColor: resolveSocialNoteAccentColor(socialAccentColor),
+          }),
       };
     },
     {
       name: "settings-storage",
-      version: 5,
+      version: 6,
       storage: createJSONStorage(() => localStorage),
       onRehydrateStorage: () => (_state, error) => {
         if (!error) {
@@ -204,6 +226,10 @@ const useSettingsStore = create<SettingsState>()(
           socialProfileAvatarUrl: socialProfile.avatarUrl,
           socialFirstPageTopOffset: socialProfile.firstPageTopOffset,
           socialAvatarSize: socialProfile.avatarSize,
+          socialBackgroundColor: resolveSocialNoteBackgroundColor(
+            state.socialBackgroundColor,
+          ),
+          socialAccentColor: resolveSocialNoteAccentColor(state.socialAccentColor),
         };
       },
     },
