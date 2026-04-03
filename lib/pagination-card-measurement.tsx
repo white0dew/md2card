@@ -12,6 +12,7 @@ type MeasuredPageElement = HTMLElement & {
 
 export interface MeasurementWrapper extends HTMLElement {
   __createMeasuredPage?: (pageIndex: number) => HTMLElement;
+  __pageShells?: Map<string, HTMLElement>;
 }
 
 export function createMeasurementSeedHtml(html: string, pageIndex: number) {
@@ -24,6 +25,43 @@ export function createMeasurementSeedHtml(html: string, pageIndex: number) {
 }
 
 export function createMeasuredCardPage(
+  wrapper: HTMLElement,
+  CardComponent: FC<CardProps>,
+  pageHeight: number,
+  pageWidth: number,
+  pageIndex: number,
+  seedHtml: string,
+) {
+  const shellKey = `page-${pageIndex}`;
+  const measurementWrapper = wrapper as MeasurementWrapper;
+  const pageShells = measurementWrapper.__pageShells ?? new Map<string, HTMLElement>();
+  measurementWrapper.__pageShells = pageShells;
+  const cachedShell = pageShells.get(shellKey);
+  const pageRoot = cachedShell
+    ? (cachedShell.cloneNode(true) as HTMLElement)
+    : createMeasuredCardPageShell(
+        wrapper,
+        CardComponent,
+        pageHeight,
+        pageWidth,
+        pageIndex,
+        seedHtml,
+      );
+
+  if (!cachedShell) {
+    pageShells.set(shellKey, pageRoot.cloneNode(true) as HTMLElement);
+  }
+
+  const pageContent = prepareMeasuredPageRoot(pageRoot);
+  wrapper.appendChild(pageRoot);
+
+  const measuredPage = pageContent as MeasuredPageElement;
+  measuredPage.__pageIndex = pageIndex;
+  measuredPage.__pageRoot = pageRoot;
+  return measuredPage;
+}
+
+function createMeasuredCardPageShell(
   wrapper: HTMLElement,
   CardComponent: FC<CardProps>,
   pageHeight: number,
@@ -66,11 +104,13 @@ export function createMeasuredCardPage(
   }
 
   const pageRoot = renderedPageRoot.cloneNode(true) as HTMLElement;
-  const pageContent = pageRoot.querySelector(".card-content");
-
   root.unmount();
   wrapper.removeChild(mount);
+  return pageRoot;
+}
 
+function prepareMeasuredPageRoot(pageRoot: HTMLElement) {
+  const pageContent = pageRoot.querySelector(".card-content");
   if (!(pageContent instanceof HTMLElement)) {
     throw new Error("无法定位卡片内容容器。");
   }
@@ -81,13 +121,7 @@ export function createMeasuredCardPage(
   pageRoot.style.visibility = "hidden";
   pageRoot.style.pointerEvents = "none";
   pageContent.innerHTML = "";
-
-  wrapper.appendChild(pageRoot);
-
-  const measuredPage = pageContent as MeasuredPageElement;
-  measuredPage.__pageIndex = pageIndex;
-  measuredPage.__pageRoot = pageRoot;
-  return measuredPage;
+  return pageContent;
 }
 
 export function getMeasuredPageIndex(page: HTMLElement) {
@@ -96,4 +130,12 @@ export function getMeasuredPageIndex(page: HTMLElement) {
 
 export function getMeasuredPageRoot(page: HTMLElement) {
   return (page as MeasuredPageElement).__pageRoot ?? page;
+}
+
+export function cleanupMeasurementWrapper(wrapper: HTMLElement | null | undefined) {
+  if (!wrapper || !wrapper.isConnected) {
+    return;
+  }
+
+  wrapper.remove();
 }

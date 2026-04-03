@@ -60,92 +60,116 @@ function clampSocialAvatarSize(size: number) {
   return Math.min(maxSocialAvatarSize, Math.max(minSocialAvatarSize, size));
 }
 
+function createDefaultSettingsState() {
+  return {
+    cardWidth: defaultWidth,
+    cardHeight: defaultHeight,
+    selectedPreset: defaultPresetId,
+    viewMode: "短卡片" as ViewMode,
+    hideOverflow: false,
+    selectedTheme: "默认",
+    socialProfileName: defaultSocialState.name,
+    socialProfileTimeLabel: defaultSocialState.timeLabel,
+    socialProfileAvatarUrl: defaultSocialState.avatarUrl,
+    socialFirstPageTopOffset: defaultSocialState.firstPageTopOffset,
+    socialAvatarSize: defaultSocialState.avatarSize,
+  };
+}
+
+let isRecoveringSettingsStorage = false;
+let recoverSettingsStorage:
+  | ((error: unknown) => void)
+  | undefined;
+
 const useSettingsStore = create<SettingsState>()(
   persist(
-    (set, get) => ({
-      cardWidth: defaultWidth,
-      cardHeight: defaultHeight,
-      selectedPreset: defaultPresetId,
-      viewMode: "短卡片",
-      hideOverflow: false,
-      selectedTheme: "默认",
-      socialProfileName: defaultSocialState.name,
-      socialProfileTimeLabel: defaultSocialState.timeLabel,
-      socialProfileAvatarUrl: defaultSocialState.avatarUrl,
-      socialFirstPageTopOffset: defaultSocialState.firstPageTopOffset,
-      socialAvatarSize: defaultSocialState.avatarSize,
-      setCardWidth: (cardWidth) => {
-        const { selectedPreset } = get();
+    (set, get, api) => {
+      recoverSettingsStorage = (error) => {
+        if (!error || isRecoveringSettingsStorage) {
+          return;
+        }
 
-        if (selectedPreset !== "custom") {
+        isRecoveringSettingsStorage = true;
+        set(createDefaultSettingsState());
+        api.persist?.clearStorage();
+
+        const rehydrationResult = api.persist?.rehydrate();
+        void Promise.resolve(rehydrationResult).finally(() => {
+          isRecoveringSettingsStorage = false;
+        });
+      };
+
+      return {
+        ...createDefaultSettingsState(),
+        setCardWidth: (cardWidth) => {
+          const { selectedPreset } = get();
+
+          if (selectedPreset !== "custom") {
+            set({
+              cardWidth,
+              cardHeight: calculatePresetHeight(cardWidth, selectedPreset),
+            });
+            return;
+          }
+
+          set({ cardWidth });
+        },
+        setCardHeight: (cardHeight) => {
+          const { cardWidth } = get();
+
           set({
-            cardWidth,
+            cardHeight,
+            selectedPreset: inferPreset(cardWidth, cardHeight),
+          });
+        },
+        setSelectedPreset: (selectedPreset) => {
+          const { cardWidth } = get();
+
+          if (selectedPreset === "custom") {
+            set({ selectedPreset });
+            return;
+          }
+
+          set({
+            selectedPreset,
             cardHeight: calculatePresetHeight(cardWidth, selectedPreset),
           });
-          return;
-        }
-
-        set({ cardWidth });
-      },
-      setCardHeight: (cardHeight) => {
-        const { cardWidth } = get();
-
-        set({
-          cardHeight,
-          selectedPreset: inferPreset(cardWidth, cardHeight),
-        });
-      },
-      setSelectedPreset: (selectedPreset) => {
-        const { cardWidth } = get();
-
-        if (selectedPreset === "custom") {
-          set({ selectedPreset });
-          return;
-        }
-
-        set({
-          selectedPreset,
-          cardHeight: calculatePresetHeight(cardWidth, selectedPreset),
-        });
-      },
-      setViewMode: (viewMode) => set({ viewMode }),
-      setHideOverflow: (hideOverflow) => set({ hideOverflow }),
-      setSelectedTheme: (selectedTheme) => set({ selectedTheme }),
-      setSocialProfileName: (socialProfileName) => set({ socialProfileName }),
-      setSocialProfileTimeLabel: (socialProfileTimeLabel) =>
-        set({ socialProfileTimeLabel }),
-      setSocialProfileAvatarUrl: (socialProfileAvatarUrl) =>
-        set({ socialProfileAvatarUrl }),
-      setSocialFirstPageTopOffset: (socialFirstPageTopOffset) =>
-        set({
-          socialFirstPageTopOffset: clampSocialFirstPageTopOffset(
-            socialFirstPageTopOffset,
-          ),
-        }),
-      setSocialAvatarSize: (socialAvatarSize) =>
-        set({ socialAvatarSize: clampSocialAvatarSize(socialAvatarSize) }),
-    }),
+        },
+        setViewMode: (viewMode) => set({ viewMode }),
+        setHideOverflow: (hideOverflow) => set({ hideOverflow }),
+        setSelectedTheme: (selectedTheme) => set({ selectedTheme }),
+        setSocialProfileName: (socialProfileName) => set({ socialProfileName }),
+        setSocialProfileTimeLabel: (socialProfileTimeLabel) =>
+          set({ socialProfileTimeLabel }),
+        setSocialProfileAvatarUrl: (socialProfileAvatarUrl) =>
+          set({ socialProfileAvatarUrl }),
+        setSocialFirstPageTopOffset: (socialFirstPageTopOffset) =>
+          set({
+            socialFirstPageTopOffset: clampSocialFirstPageTopOffset(
+              socialFirstPageTopOffset,
+            ),
+          }),
+        setSocialAvatarSize: (socialAvatarSize) =>
+          set({ socialAvatarSize: clampSocialAvatarSize(socialAvatarSize) }),
+      };
+    },
     {
       name: "settings-storage",
       version: 5,
       storage: createJSONStorage(() => localStorage),
+      onRehydrateStorage: () => (_state, error) => {
+        if (!error) {
+          isRecoveringSettingsStorage = false;
+          return;
+        }
+
+        recoverSettingsStorage?.(error);
+      },
       migrate: (persistedState) => {
         const state = persistedState as SettingsState | undefined;
 
         if (!state) {
-          return {
-            cardWidth: defaultWidth,
-            cardHeight: defaultHeight,
-            selectedPreset: defaultPresetId,
-            viewMode: "短卡片" as ViewMode,
-            hideOverflow: false,
-            selectedTheme: "默认",
-            socialProfileName: defaultSocialState.name,
-            socialProfileTimeLabel: defaultSocialState.timeLabel,
-            socialProfileAvatarUrl: defaultSocialState.avatarUrl,
-            socialFirstPageTopOffset: defaultSocialState.firstPageTopOffset,
-            socialAvatarSize: defaultSocialState.avatarSize,
-          };
+          return createDefaultSettingsState();
         }
 
         const nextPreset =

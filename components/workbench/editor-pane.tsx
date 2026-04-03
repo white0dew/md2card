@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useMemo, useRef, useState, type JSX } from "react";
+import { useEffect, useEffectEvent, useMemo, useRef, useState, type JSX } from "react";
 import {
   FiAlignLeft,
   FiBold,
@@ -26,6 +26,7 @@ import useEditorStore from "@/stores/editor-store";
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
   ssr: false,
 });
+const persistDelayMs = 180;
 
 const toolbarGroups: {
   id: FormatAction;
@@ -60,7 +61,11 @@ export default function EditorPane() {
   const content = useEditorStore((state) => state.content);
   const setContent = useEditorStore((state) => state.setContent);
   const editorReady = usePersistHydration(useEditorStore);
+  const [draftContent, setDraftContent] = useState("");
   const [isAlignmentMenuOpen, setAlignmentMenuOpen] = useState(false);
+  const draftContentRef = useRef(content);
+  const persistedContentRef = useRef(content);
+  const persistTimerRef = useRef<number | null>(null);
   const editorRef = useRef<{
     getSelection: () => unknown;
     getModel: () => { getValueInRange: (range: unknown) => string } | null;
@@ -70,6 +75,27 @@ export default function EditorPane() {
     ) => void;
   } | null>(null);
 
+  const clearPersistTimer = () => {
+    if (persistTimerRef.current === null) {
+      return;
+    }
+
+    window.clearTimeout(persistTimerRef.current);
+    persistTimerRef.current = null;
+  };
+
+  const flushDraftContent = useEffectEvent(() => {
+    clearPersistTimer();
+
+    const nextContent = draftContentRef.current;
+    if (nextContent === persistedContentRef.current) {
+      return;
+    }
+
+    persistedContentRef.current = nextContent;
+    setContent(nextContent);
+  });
+
   const alignmentActions = useMemo(
     () => alignmentOptions.map((option) => ({
       id: `align-${option}` as FormatAction,
@@ -77,6 +103,47 @@ export default function EditorPane() {
     })),
     [],
   );
+
+  useEffect(() => {
+    if (!editorReady) {
+      return;
+    }
+
+    persistedContentRef.current = content;
+    draftContentRef.current = content;
+    setDraftContent(content);
+  }, [content, editorReady]);
+
+  useEffect(() => {
+    if (!editorReady) {
+      return undefined;
+    }
+
+    clearPersistTimer();
+    persistTimerRef.current = window.setTimeout(() => {
+      flushDraftContent();
+    }, persistDelayMs);
+
+    return () => {
+      clearPersistTimer();
+    };
+  }, [draftContent, editorReady, flushDraftContent]);
+
+  useEffect(() => {
+    if (!editorReady) {
+      return undefined;
+    }
+
+    const handleBeforeUnload = () => {
+      flushDraftContent();
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      flushDraftContent();
+    };
+  }, [editorReady, flushDraftContent]);
 
   const applyAction = (action: FormatAction) => {
     const editor = editorRef.current;
@@ -165,7 +232,11 @@ export default function EditorPane() {
             className="h-full"
             height="100%"
             language="markdown"
-            onChange={(value) => setContent(value ?? "")}
+            onChange={(value) => {
+              const nextContent = value ?? "";
+              draftContentRef.current = nextContent;
+              setDraftContent(nextContent);
+            }}
             onMount={(editor) => {
               editorRef.current = editor as unknown as {
                 getSelection: () => unknown;
@@ -192,7 +263,7 @@ export default function EditorPane() {
               },
             }}
             theme="light"
-            value={content}
+            value={draftContent}
           />
         ) : (
           <div className="flex h-full items-center justify-center bg-slate-50 text-sm text-slate-500">

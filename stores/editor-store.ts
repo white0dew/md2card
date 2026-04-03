@@ -61,21 +61,57 @@ interface EditorState {
   setContent: (content: string) => void;
 }
 
+function createDefaultEditorState() {
+  return {
+    content: normalizeContent(defaultMarkdown),
+  };
+}
+
+let isRecoveringEditorStorage = false;
+let recoverEditorStorage:
+  | ((error: unknown) => void)
+  | undefined;
+
 const useEditorStore = create<EditorState>()(
   persist(
-    (set) => ({
-      content: normalizeContent(defaultMarkdown),
-      setContent: (content) => set({ content: normalizeContent(content) }),
-    }),
+    (set, _get, api) => {
+      recoverEditorStorage = (error) => {
+        if (!error || isRecoveringEditorStorage) {
+          return;
+        }
+
+        isRecoveringEditorStorage = true;
+        set(createDefaultEditorState());
+        api.persist?.clearStorage();
+
+        const rehydrationResult = api.persist?.rehydrate();
+        void Promise.resolve(rehydrationResult).finally(() => {
+          isRecoveringEditorStorage = false;
+        });
+      };
+
+      return {
+        ...createDefaultEditorState(),
+        setContent: (content) => set({ content: normalizeContent(content) }),
+      };
+    },
     {
       name: "editor-storage",
       storage: createJSONStorage(() => localStorage),
       version: 1,
+      onRehydrateStorage: () => (_state, error) => {
+        if (!error) {
+          isRecoveringEditorStorage = false;
+          return;
+        }
+
+        recoverEditorStorage?.(error);
+      },
       migrate: (persistedState) => {
         const state = persistedState as EditorState | undefined;
 
         if (!state) {
-          return { content: normalizeContent(defaultMarkdown) };
+          return createDefaultEditorState();
         }
 
         return {

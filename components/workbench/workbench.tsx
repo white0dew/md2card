@@ -11,7 +11,7 @@ import TopBar from "@/components/workbench/top-bar";
 import useSettingsStore from "@/stores/settings-store";
 
 export default function Workbench() {
-  const { selectedPreset } = useSettingsStore();
+  const selectedPreset = useSettingsStore((state) => state.selectedPreset);
   const [exportStatus, setExportStatus] = useState<"idle" | "exporting" | "success" | "error">("idle");
   const [exportMessage, setExportMessage] = useState<string | null>(null);
 

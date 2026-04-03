@@ -23,7 +23,8 @@ export default function usePersistHydration(store: PersistStore) {
       return undefined;
     }
 
-    setHydrated(persist.hasHydrated());
+    const hasHydrated = persist.hasHydrated();
+    setHydrated(hasHydrated);
 
     const unsubscribeHydrate = persist.onHydrate(() => {
       setHydrated(false);

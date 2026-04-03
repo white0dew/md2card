@@ -3,6 +3,7 @@
 import { useEffect, useState, type FC, type JSX } from "react";
 import type { CardProps } from "@/lib/card-types";
 import {
+  cleanupMeasurementWrapper,
   createMeasuredCardPage,
   getMeasuredPageRoot,
   createMeasurementSeedHtml,
@@ -33,6 +34,8 @@ interface PaginatedMarkdownViewerProps {
   CardComponent: FC<CardProps>;
 }
 
+const yieldBatchSize = 8;
+
 async function waitForImagesToLoad(container: HTMLElement) {
   const sources = Array.from(container.querySelectorAll("img"))
     .map((image) => image.getAttribute("src"))
@@ -49,6 +52,12 @@ async function waitForImagesToLoad(container: HTMLElement) {
       resolve();
     }
   })));
+}
+
+async function yieldToMainThread() {
+  await new Promise<void>((resolve) => {
+    window.setTimeout(resolve, 0);
+  });
 }
 
 export default function PaginatedMarkdownViewer({
@@ -77,87 +86,150 @@ export default function PaginatedMarkdownViewer({
         return;
       }
 
-      timeoutId = window.setTimeout(() => {
-        if (cancelled) {
+      timeoutId = window.setTimeout(async () => {
+        let wrapper: HTMLElement | null = null;
+        let processedUnits = 0;
+
+        const maybeYieldToMainThread = async () => {
+          processedUnits += 1;
+          if (processedUnits % yieldBatchSize !== 0) {
+            return false;
+          }
+
+          await yieldToMainThread();
+          if (!cancelled) {
+            return false;
+          }
+
+          cleanupMeasurementWrapper(wrapper);
+          return true;
+        };
+
+        if (await maybeYieldToMainThread()) {
           return;
         }
 
-        const wrapper = document.createElement("div");
+        wrapper = document.createElement("div");
         wrapper.style.position = "absolute";
         wrapper.style.visibility = "hidden";
         wrapper.style.width = `${pageWidth}px`;
         document.body.appendChild(wrapper);
 
-        const measurementWrapper = wrapper as MeasurementWrapper;
-        measurementWrapper.__createMeasuredPage = (pageIndex) =>
-          createMeasuredCardPage(
-            wrapper,
-            CardComponent,
-            pageHeight,
-            pageWidth,
-            pageIndex,
-            createMeasurementSeedHtml(html, pageIndex),
-          );
+        try {
+          const measurementWrapper = wrapper as MeasurementWrapper;
+          measurementWrapper.__createMeasuredPage = (pageIndex) =>
+            createMeasuredCardPage(
+              wrapper,
+              CardComponent,
+              pageHeight,
+              pageWidth,
+              pageIndex,
+              createMeasurementSeedHtml(html, pageIndex),
+            );
 
-        let currentPage = createNewPage(wrapper, pageHeight, pageWidth, 0);
-        const sections = groupNodesIntoSections(Array.from(temp.childNodes));
-        const pageElements: JSX.Element[] = [];
+          let currentPage = createNewPage(wrapper, pageHeight, pageWidth, 0);
+          const sections = groupNodesIntoSections(Array.from(temp.childNodes));
+          const pageElements: JSX.Element[] = [];
 
-        let sectionIndex = 0;
-        while (sectionIndex < sections.length) {
-          const section = sections[sectionIndex];
-          const sectionClones = section.map((node) => node.cloneNode(true) as HTMLElement);
-          sectionClones.forEach((clone) => currentPage.appendChild(clone));
-
-          if (getMeasuredPageRoot(currentPage).scrollHeight > pageHeight) {
-            sectionClones.forEach((clone) => {
-              if (clone.parentNode === currentPage) {
-                currentPage.removeChild(clone);
-              }
-            });
-
-            if (
-              currentPage.childNodes.length > 0 &&
-              fitsNodesOnFreshPage(
-                section,
-                wrapper,
-                pageHeight,
-                pageWidth,
-                pageElements.length + 1,
-              )
-            ) {
-              finalizeCurrentPage(
-                currentPage,
-                pageElements,
-                CardComponent,
-                pageHeight,
-                pageWidth,
-              );
-              currentPage = createNewPage(
-                wrapper,
-                pageHeight,
-                pageWidth,
-                pageElements.length,
-              );
-              sectionClones.forEach((clone) => currentPage.appendChild(clone));
-              sectionIndex += 1;
-              continue;
+          let sectionIndex = 0;
+          while (sectionIndex < sections.length) {
+            if (await maybeYieldToMainThread()) {
+              return;
             }
 
-            let nodeIndex = 0;
-            while (nodeIndex < section.length) {
-              const node = section[nodeIndex];
-              const clone = node.cloneNode(true) as HTMLElement;
-              currentPage.appendChild(clone);
+            const section = sections[sectionIndex];
+            const sectionClones = section.map((node) => node.cloneNode(true) as HTMLElement);
+            sectionClones.forEach((clone) => currentPage.appendChild(clone));
 
-              if (getMeasuredPageRoot(currentPage).scrollHeight > pageHeight) {
-                currentPage.removeChild(clone);
+            if (getMeasuredPageRoot(currentPage).scrollHeight > pageHeight) {
+              sectionClones.forEach((clone) => {
+                if (clone.parentNode === currentPage) {
+                  currentPage.removeChild(clone);
+                }
+              });
 
-                const carryoverNodes = takeTrailingKeepWithNextNodes(currentPage, node);
-                if (carryoverNodes.length > 0) {
-                  carryoverNodes.forEach((carryoverNode) => currentPage.removeChild(carryoverNode));
+              if (
+                currentPage.childNodes.length > 0 &&
+                fitsNodesOnFreshPage(
+                  section,
+                  wrapper,
+                  pageHeight,
+                  pageWidth,
+                  pageElements.length + 1,
+                )
+              ) {
+                finalizeCurrentPage(
+                  currentPage,
+                  pageElements,
+                  CardComponent,
+                  pageHeight,
+                  pageWidth,
+                );
+                currentPage = createNewPage(
+                  wrapper,
+                  pageHeight,
+                  pageWidth,
+                  pageElements.length,
+                );
+                sectionClones.forEach((clone) => currentPage.appendChild(clone));
+                sectionIndex += 1;
+                continue;
+              }
 
-                  if (currentPage.childNodes.length > 0) {
+              let nodeIndex = 0;
+              while (nodeIndex < section.length) {
+                if (await maybeYieldToMainThread()) {
+                  return;
+                }
+
+                const node = section[nodeIndex];
+                const clone = node.cloneNode(true) as HTMLElement;
+                currentPage.appendChild(clone);
+
+                if (getMeasuredPageRoot(currentPage).scrollHeight > pageHeight) {
+                  currentPage.removeChild(clone);
+
+                  const carryoverNodes = takeTrailingKeepWithNextNodes(currentPage, node);
+                  if (carryoverNodes.length > 0) {
+                    carryoverNodes.forEach((carryoverNode) => currentPage.removeChild(carryoverNode));
+
+                    if (currentPage.childNodes.length > 0) {
+                      finalizeCurrentPage(
+                        currentPage,
+                        pageElements,
+                        CardComponent,
+                        pageHeight,
+                        pageWidth,
+                      );
+                      currentPage = createNewPage(
+                        wrapper,
+                        pageHeight,
+                        pageWidth,
+                        pageElements.length,
+                      );
+                    }
+
+                    carryoverNodes.forEach((carryoverNode) => currentPage.appendChild(carryoverNode));
+                    currentPage.appendChild(clone);
+
+                    if (getMeasuredPageRoot(currentPage).scrollHeight <= pageHeight) {
+                      nodeIndex += 1;
+                      continue;
+                    }
+
+                    currentPage.removeChild(clone);
+                  }
+
+                  if (
+                    currentPage.childNodes.length > 0 &&
+                    fitsNodesOnFreshPage(
+                      [node],
+                      wrapper,
+                      pageHeight,
+                      pageWidth,
+                      pageElements.length + 1,
+                    )
+                  ) {
                     finalizeCurrentPage(
                       currentPage,
                       pageElements,
@@ -171,49 +243,76 @@ export default function PaginatedMarkdownViewer({
                       pageWidth,
                       pageElements.length,
                     );
-                  }
-
-                  carryoverNodes.forEach((carryoverNode) => currentPage.appendChild(carryoverNode));
-                  currentPage.appendChild(clone);
-
-                  if (getMeasuredPageRoot(currentPage).scrollHeight <= pageHeight) {
+                    currentPage.appendChild(clone);
                     nodeIndex += 1;
                     continue;
                   }
 
-                  currentPage.removeChild(clone);
-                }
+                  if (isTextNodeLike(node)) {
+                    const result = handleTextNode(
+                      node,
+                      currentPage,
+                      wrapper,
+                      pageElements,
+                      CardComponent,
+                      pageHeight,
+                      pageWidth,
+                    );
+                    currentPage = result.newPage;
+                    currentPage.appendChild(result.nodeToAdd);
+                    nodeIndex += 1;
+                    continue;
+                  }
 
-                if (
-                  currentPage.childNodes.length > 0 &&
-                  fitsNodesOnFreshPage(
-                    [node],
-                    wrapper,
-                    pageHeight,
-                    pageWidth,
-                    pageElements.length + 1,
-                  )
-                ) {
-                  finalizeCurrentPage(
-                    currentPage,
-                    pageElements,
-                    CardComponent,
-                    pageHeight,
-                    pageWidth,
-                  );
-                  currentPage = createNewPage(
-                    wrapper,
-                    pageHeight,
-                    pageWidth,
-                    pageElements.length,
-                  );
-                  currentPage.appendChild(clone);
-                  nodeIndex += 1;
-                  continue;
-                }
+                  if (isList(node)) {
+                    const result = handleListNode(
+                      node,
+                      currentPage,
+                      wrapper,
+                      pageElements,
+                      CardComponent,
+                      pageHeight,
+                      pageWidth,
+                    );
+                    currentPage = result.newPage;
+                    currentPage.appendChild(result.nodeToAdd);
+                    nodeIndex += 1;
+                    continue;
+                  }
 
-                if (isTextNodeLike(node)) {
-                  const result = handleTextNode(
+                  if (isTable(node)) {
+                    const result = handleTableNode(
+                      node,
+                      currentPage,
+                      wrapper,
+                      pageElements,
+                      CardComponent,
+                      pageHeight,
+                      pageWidth,
+                    );
+                    currentPage = result.newPage;
+                    currentPage.appendChild(result.nodeToAdd);
+                    nodeIndex += 1;
+                    continue;
+                  }
+
+                  if (isImage(node)) {
+                    const result = handleImageNode(
+                      node,
+                      currentPage,
+                      wrapper,
+                      pageElements,
+                      CardComponent,
+                      pageHeight,
+                      pageWidth,
+                    );
+                    currentPage = result.newPage;
+                    currentPage.appendChild(result.nodeToAdd);
+                    nodeIndex += 1;
+                    continue;
+                  }
+
+                  const result = handleGenericNode(
                     node,
                     currentPage,
                     wrapper,
@@ -224,90 +323,31 @@ export default function PaginatedMarkdownViewer({
                   );
                   currentPage = result.newPage;
                   currentPage.appendChild(result.nodeToAdd);
-                  nodeIndex += 1;
-                  continue;
                 }
 
-                if (isList(node)) {
-                  const result = handleListNode(
-                    node,
-                    currentPage,
-                    wrapper,
-                    pageElements,
-                    CardComponent,
-                    pageHeight,
-                    pageWidth,
-                  );
-                  currentPage = result.newPage;
-                  currentPage.appendChild(result.nodeToAdd);
-                  nodeIndex += 1;
-                  continue;
-                }
-
-                if (isTable(node)) {
-                  const result = handleTableNode(
-                    node,
-                    currentPage,
-                    wrapper,
-                    pageElements,
-                    CardComponent,
-                    pageHeight,
-                    pageWidth,
-                  );
-                  currentPage = result.newPage;
-                  currentPage.appendChild(result.nodeToAdd);
-                  nodeIndex += 1;
-                  continue;
-                }
-
-                if (isImage(node)) {
-                  const result = handleImageNode(
-                    node,
-                    currentPage,
-                    wrapper,
-                    pageElements,
-                    CardComponent,
-                    pageHeight,
-                    pageWidth,
-                  );
-                  currentPage = result.newPage;
-                  currentPage.appendChild(result.nodeToAdd);
-                  nodeIndex += 1;
-                  continue;
-                }
-
-                const result = handleGenericNode(
-                  node,
-                  currentPage,
-                  wrapper,
-                  pageElements,
-                  CardComponent,
-                  pageHeight,
-                  pageWidth,
-                );
-                currentPage = result.newPage;
-                currentPage.appendChild(result.nodeToAdd);
+                nodeIndex += 1;
               }
-
-              nodeIndex += 1;
             }
+
+            sectionIndex += 1;
           }
 
-          sectionIndex += 1;
-        }
+          if (currentPage.childNodes.length > 0) {
+            addPageElement(
+              currentPage,
+              pageElements,
+              CardComponent,
+              pageHeight,
+              pageWidth,
+            );
+          }
 
-        if (currentPage.childNodes.length > 0) {
-          addPageElement(
-            currentPage,
-            pageElements,
-            CardComponent,
-            pageHeight,
-            pageWidth,
-          );
+          if (!cancelled) {
+            setPages(pageElements);
+          }
+        } finally {
+          cleanupMeasurementWrapper(wrapper);
         }
-
-        document.body.removeChild(wrapper);
-        setPages(pageElements);
       }, 0);
     };
 
