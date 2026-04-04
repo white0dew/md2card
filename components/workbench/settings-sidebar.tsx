@@ -8,6 +8,10 @@ import {
   socialNoteAccentColors,
   socialNoteBackgroundColors,
 } from "@/lib/social-note-colors";
+import {
+  socialNoteFontOptions,
+  type SocialNoteFontPreset,
+} from "@/lib/social-note-fonts";
 import { defaultSocialProfile } from "@/lib/social-profile";
 import useSettingsStore, { viewModes } from "@/stores/settings-store";
 
@@ -36,6 +40,7 @@ export default function SettingsSidebar() {
     socialAvatarSize,
     socialBackgroundColor,
     socialAccentColor,
+    socialFontPreset,
     setCardWidth,
     setCardHeight,
     setSelectedPreset,
@@ -49,6 +54,7 @@ export default function SettingsSidebar() {
     setSocialAvatarSize,
     setSocialBackgroundColor,
     setSocialAccentColor,
+    setSocialFontPreset,
   } = useSettingsStore();
   const presetMeta = designPresets[selectedPreset];
   const avatarUploadId = useId();
@@ -317,6 +323,26 @@ export default function SettingsSidebar() {
               options={socialNoteBackgroundColors}
               value={socialBackgroundColor}
             />
+
+            <div>
+              <label className="mb-2 block text-sm text-slate-600" htmlFor="social-font-preset">
+                字体风格
+              </label>
+              <select
+                className="w-full rounded-lg border border-slate-200 bg-white p-2 text-sm text-slate-700"
+                id="social-font-preset"
+                onChange={(event) =>
+                  setSocialFontPreset(event.target.value as SocialNoteFontPreset)
+                }
+                value={socialFontPreset}
+              >
+                {socialNoteFontOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             <ColorPalettePicker
               label="重点字体颜色"

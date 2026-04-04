@@ -16,6 +16,11 @@ import {
   resolveSocialNoteBackgroundColor,
 } from "@/lib/social-note-colors";
 import {
+  defaultSocialNoteFontPreset,
+  type SocialNoteFontPreset,
+  resolveSocialNoteFontPreset,
+} from "@/lib/social-note-fonts";
+import {
   resolveSocialProfile,
 } from "@/lib/social-profile";
 
@@ -36,6 +41,7 @@ interface SettingsState {
   socialAvatarSize: number;
   socialBackgroundColor: string;
   socialAccentColor: string;
+  socialFontPreset: SocialNoteFontPreset;
   setCardWidth: (width: number) => void;
   setCardHeight: (height: number) => void;
   setSelectedPreset: (preset: DesignPresetId) => void;
@@ -49,6 +55,7 @@ interface SettingsState {
   setSocialAvatarSize: (size: number) => void;
   setSocialBackgroundColor: (color: string) => void;
   setSocialAccentColor: (color: string) => void;
+  setSocialFontPreset: (preset: SocialNoteFontPreset) => void;
 }
 
 const defaultWidth = defaultCanvasSize.width;
@@ -85,6 +92,7 @@ function createDefaultSettingsState() {
     socialAvatarSize: defaultSocialState.avatarSize,
     socialBackgroundColor: defaultSocialNoteBackgroundColor,
     socialAccentColor: defaultSocialNoteAccentColor,
+    socialFontPreset: defaultSocialNoteFontPreset,
   };
 }
 
@@ -173,11 +181,15 @@ const useSettingsStore = create<SettingsState>()(
           set({
             socialAccentColor: resolveSocialNoteAccentColor(socialAccentColor),
           }),
+        setSocialFontPreset: (socialFontPreset) =>
+          set({
+            socialFontPreset: resolveSocialNoteFontPreset(socialFontPreset),
+          }),
       };
     },
     {
       name: "settings-storage",
-      version: 6,
+      version: 7,
       storage: createJSONStorage(() => localStorage),
       onRehydrateStorage: () => (_state, error) => {
         if (!error) {
@@ -230,6 +242,7 @@ const useSettingsStore = create<SettingsState>()(
             state.socialBackgroundColor,
           ),
           socialAccentColor: resolveSocialNoteAccentColor(state.socialAccentColor),
+          socialFontPreset: resolveSocialNoteFontPreset(state.socialFontPreset),
         };
       },
     },

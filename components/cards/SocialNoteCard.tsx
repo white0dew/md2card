@@ -9,6 +9,10 @@ import {
   defaultSocialNoteAccentColor,
   defaultSocialNoteBackgroundColor,
 } from "@/lib/social-note-colors";
+import {
+  defaultSocialNoteFontFamily,
+  getSocialNoteFontFamily,
+} from "@/lib/social-note-fonts";
 import { resolveSocialProfile } from "@/lib/social-profile";
 import useSettingsStore from "@/stores/settings-store";
 
@@ -86,7 +90,7 @@ const CardContainer = styled.article`
   padding: 28px 28px 32px;
   background: var(--social-background-color, ${defaultSocialNoteBackgroundColor});
   color: #171717;
-  font-family: "Songti SC", "STSong", "Noto Serif SC", serif;
+  font-family: var(--social-font-family, ${defaultSocialNoteFontFamily});
 
   .social-meta {
     display: flex;
@@ -109,6 +113,30 @@ const CardContainer = styled.article`
     line-height: 1;
   }
 
+  .social-name-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .social-verified-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    background: #1d9bf0;
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(29, 155, 240, 0.28);
+    flex-shrink: 0;
+  }
+
+  .social-verified-badge svg {
+    width: 11px;
+    height: 11px;
+  }
+
   .social-time {
     margin-top: 6px;
     color: #7c7c7c;
@@ -126,7 +154,7 @@ const CardContainer = styled.article`
   }
 
   .card-content {
-    font-size: 16px;
+    font-size: 17px;
     line-height: 1.22;
   }
 
@@ -259,6 +287,7 @@ const Card: FC<CardProps> = ({
   const socialAvatarSize = useSettingsStore((state) => state.socialAvatarSize);
   const socialBackgroundColor = useSettingsStore((state) => state.socialBackgroundColor);
   const socialAccentColor = useSettingsStore((state) => state.socialAccentColor);
+  const socialFontPreset = useSettingsStore((state) => state.socialFontPreset);
   const socialProfile = resolveSocialProfile(
     {
       avatarUrl: socialProfileAvatarUrl,
@@ -273,6 +302,7 @@ const Card: FC<CardProps> = ({
     height,
     ["--social-background-color" as string]: socialBackgroundColor,
     ["--social-accent-color" as string]: socialAccentColor,
+    ["--social-font-family" as string]: getSocialNoteFontFamily(socialFontPreset),
   } as CSSProperties;
 
   return (
@@ -287,7 +317,17 @@ const Card: FC<CardProps> = ({
               style={{ height: socialProfile.avatarSize, width: socialProfile.avatarSize }}
             />
             <div>
-              <div className="social-name">{socialProfile.name}</div>
+              <div className="social-name-row">
+                <div className="social-name">{socialProfile.name}</div>
+                <span aria-label="已认证" className="social-verified-badge" role="img">
+                  <svg fill="none" viewBox="0 0 24 24">
+                    <path
+                      d="M9.55 16.2 5.8 12.45l1.4-1.4 2.35 2.35 7.25-7.25 1.4 1.4-8.65 8.65Z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                </span>
+              </div>
               <div className="social-time">{socialProfile.timeLabel}</div>
             </div>
           </div>

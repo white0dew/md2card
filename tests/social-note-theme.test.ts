@@ -37,6 +37,16 @@ test("social-note theme reads background and accent colors from settings", async
   assert.match(cardText, /socialAccentColor/);
 });
 
+test("social-note theme renders a verified badge beside the profile name", async () => {
+  const cardText = await readFile(
+    new URL("../components/cards/SocialNoteCard.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(cardText, /social-verified-badge/);
+  assert.match(cardText, /已认证/);
+});
+
 test("settings sidebar supports avatar upload flow", async () => {
   const sidebarText = await readFile(
     new URL("../components/workbench/settings-sidebar.tsx", import.meta.url),
@@ -71,4 +81,36 @@ test("settings store persists social-note color selections", async () => {
   assert.match(storeText, /socialAccentColor/);
   assert.match(storeText, /setSocialBackgroundColor/);
   assert.match(storeText, /setSocialAccentColor/);
+});
+
+test("settings sidebar exposes social-note font preset control", async () => {
+  const sidebarText = await readFile(
+    new URL("../components/workbench/settings-sidebar.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(sidebarText, /字体风格/);
+  assert.match(sidebarText, /socialNoteFontOptions/);
+  assert.match(sidebarText, /setSocialFontPreset/);
+});
+
+test("settings store persists social-note font preset selection", async () => {
+  const storeText = await readFile(
+    new URL("../stores/settings-store.ts", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(storeText, /socialFontPreset/);
+  assert.match(storeText, /setSocialFontPreset/);
+});
+
+test("social-note theme reads the font preset and uses a larger body font size", async () => {
+  const cardText = await readFile(
+    new URL("../components/cards/SocialNoteCard.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(cardText, /socialFontPreset/);
+  assert.match(cardText, /--social-font-family/);
+  assert.match(cardText, /font-size:\s*17px/);
 });
