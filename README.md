@@ -49,7 +49,7 @@ pnpm verify:export -- --markdown /absolute/path/to/demo.md
 - `--theme 社交图文`
 - `--preset xiaohongshu`
 - `--width 440 --height 587`
-- `--profile-name 阿亮`
+- `--profile-name 青玉白露`
 - `--profile-time 03/30`
 - `--profile-avatar /social-avatar.svg`
 

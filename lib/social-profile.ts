@@ -7,7 +7,7 @@ export interface SocialProfile {
 }
 
 export const defaultSocialProfile: Omit<SocialProfile, "timeLabel"> = {
-  name: "阿亮",
+  name: "青玉白露",
   avatarUrl: "/social-avatar.svg",
   firstPageTopOffset: 0,
   avatarSize: 52,

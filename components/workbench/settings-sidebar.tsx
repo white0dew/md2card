@@ -247,7 +247,7 @@ export default function SettingsSidebar() {
               <input
                 className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700"
                 onChange={(event) => setSocialProfileName(event.target.value)}
-                placeholder="例如：阿亮"
+                placeholder="例如：青玉白露"
                 type="text"
                 value={socialProfileName}
               />
