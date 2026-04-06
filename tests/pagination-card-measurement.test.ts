@@ -4,9 +4,7 @@ import test from "node:test";
 
 const cardFiles = [
   "DefaultCard.tsx",
-  "GlassCard.tsx",
   "SocialNoteCard.tsx",
-  "WarmCard.tsx",
 ];
 
 test("card themes expose both outer and inner refs for exact pagination measurement", async () => {
@@ -20,6 +18,15 @@ test("card themes expose both outer and inner refs for exact pagination measurem
     assert.match(source, /ref=\{contentRef(?:\s+as\s+Ref<[^>]+>)?\}/);
     assert.match(source, /ref=\{containerRef(?:\s+as\s+Ref<[^>]+>)?\}/);
   }
+
+  const factorySource = await readFile(
+    new URL("../components/cards/create-themed-card.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(factorySource, /contentRef/);
+  assert.match(factorySource, /ref=\{contentRef(?:\s+as\s+Ref<[^>]+>)?\}/);
+  assert.match(factorySource, /ref=\{containerRef(?:\s+as\s+Ref<[^>]+>)?\}/);
 });
 
 test("paginated viewer no longer hardcodes first-page measurement for every page", async () => {

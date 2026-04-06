@@ -121,69 +121,6 @@ body {
   background: #fdf5e6;
 }
 
-/* 玻璃拟态主题 */
-.prose-glass h1,
-.prose-glass h2,
-.prose-glass h3,
-.prose-glass h4,
-.prose-glass h5,
-.prose-glass h6 {
-  color: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-  padding: 0.5rem;
-  border-radius: 8px;
-}
-
-.prose-glass blockquote {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(5px);
-  border-radius: 8px;
-  padding: 1rem;
-  border-left: 4px solid rgba(255, 255, 255, 0.3);
-}
-
-.prose-glass pre {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(5px);
-  border-radius: 8px;
-  padding: 1rem;
-}
-
-.prose-glass code {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.9);
-  padding: 0.2em 0.4em;
-  border-radius: 4px;
-}
-
-/* 温暖柔和主题 */
-.prose-warm h1,
-.prose-warm h2,
-.prose-warm h3,
-.prose-warm h4,
-.prose-warm h5,
-.prose-warm h6 {
-  color: #d35400;
-  font-family: "Georgia", serif;
-}
-
-.prose-warm blockquote {
-  border-left: 4px solid #e67e22;
-  background: #fdf2e9;
-  padding: 1rem;
-}
-
-.prose-warm pre {
-  background: #fdf2e9;
-  border-radius: 8px;
-  padding: 1rem;
-}
-
-.prose-warm code {
-  color: #d35400;
-  background: #fdf2e9;
-}
-
 /* 简约高级灰主题 */
 .prose-minimal h1,
 .prose-minimal h2,
@@ -247,8 +184,6 @@ body {
 /* 通用样式 */
 .prose-pop-art a,
 .prose-art-deco a,
-.prose-glass a,
-.prose-warm a,
 .prose-minimal a,
 .prose-dream a {
   text-decoration: none;
@@ -256,8 +191,6 @@ body {
 
 .prose-pop-art table,
 .prose-art-deco table,
-.prose-glass table,
-.prose-warm table,
 .prose-minimal table,
 .prose-dream table {
   width: 100%;
@@ -269,10 +202,6 @@ body {
 .prose-pop-art td,
 .prose-art-deco th,
 .prose-art-deco td,
-.prose-glass th,
-.prose-glass td,
-.prose-warm th,
-.prose-warm td,
 .prose-minimal th,
 .prose-minimal td,
 .prose-dream th,

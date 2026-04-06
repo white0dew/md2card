@@ -20,19 +20,19 @@ test("new themes customize key markdown blocks", async () => {
     new URL("../components/cards/EditorialCard.tsx", import.meta.url),
     "utf8",
   );
-  const terminalCardText = await readFile(
-    new URL("../components/cards/TerminalCard.tsx", import.meta.url),
+  const socialCardText = await readFile(
+    new URL("../components/cards/SocialNoteCard.tsx", import.meta.url),
     "utf8",
   );
-  const knowledgeCardText = await readFile(
-    new URL("../components/cards/KnowledgeCard.tsx", import.meta.url),
+  const terminalCardText = await readFile(
+    new URL("../components/cards/TerminalCard.tsx", import.meta.url),
     "utf8",
   );
 
   assert.match(editorialCardText, /md-blockquote/);
   assert.match(editorialCardText, /Noto Serif SC/);
+  assert.match(socialCardText, /social-verified-badge/);
+  assert.match(socialCardText, /md-table/);
   assert.match(terminalCardText, /terminal-notes/);
   assert.match(terminalCardText, /md-pre/);
-  assert.match(knowledgeCardText, /知识库/);
-  assert.match(knowledgeCardText, /md-table/);
 });

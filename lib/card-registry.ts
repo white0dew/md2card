@@ -1,15 +1,11 @@
 import type { CardConfig } from "@/lib/card-types";
 import defaultCard from "@/components/cards/DefaultCard";
 import editorialCard from "@/components/cards/EditorialCard";
-import glassCard from "@/components/cards/GlassCard";
 import socialNoteCard from "@/components/cards/SocialNoteCard";
 import terminalCard from "@/components/cards/TerminalCard";
-import warmCard from "@/components/cards/WarmCard";
 
 const configs = [
   defaultCard,
-  glassCard,
-  warmCard,
   socialNoteCard,
   editorialCard,
   terminalCard,
