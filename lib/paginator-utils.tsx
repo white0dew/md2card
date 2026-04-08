@@ -4,6 +4,7 @@ import { getMeasuredPageIndex, getMeasuredPageRoot, type MeasurementWrapper } fr
 import {
   findTrailingKeepWithNextCount,
   findPreferredTextSplitIndex,
+  isHeadingTag,
   isAtomicBlockTag,
   isImageContainerTag,
   isInlineFormattingTag,
@@ -383,6 +384,10 @@ export function getNodeTagName(node: Node) {
   return node.nodeType === Node.ELEMENT_NODE ? (node as Element).tagName : null;
 }
 
+export function isHeadingTagName(tagName: string | null | undefined) {
+  return isHeadingTag(tagName);
+}
+
 export function fitsNodesOnFreshPage(
   nodes: Node[],
   wrapper: HTMLElement,
@@ -416,6 +421,39 @@ export function takeTrailingKeepWithNextNodes(
   }
 
   return children.slice(-count);
+}
+
+export function canTextNodeSplitOnCurrentPage(
+  node: Node,
+  currentPage: HTMLElement,
+  pageHeight: number,
+) {
+  if (!isTextNodeLike(node)) {
+    return false;
+  }
+
+  if (
+    node.nodeType === Node.ELEMENT_NODE &&
+    Array.from((node as Element).querySelectorAll("*")).some((child) =>
+      isInlineFormattingTag(child.tagName),
+    )
+  ) {
+    const { firstPart } = splitFormattedElement(
+      node as HTMLElement,
+      currentPage,
+      pageHeight,
+    );
+
+    return firstPart.childNodes.length > 0;
+  }
+
+  const holder =
+    node.nodeType === Node.TEXT_NODE
+      ? document.createElement("span")
+      : createElementClone(node as HTMLElement);
+  holder.textContent = node.textContent;
+
+  return findTextSplit(holder, currentPage, pageHeight) > 0;
 }
 
 export function handleTextNode(

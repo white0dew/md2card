@@ -21,6 +21,8 @@ import {
   resolveSocialNoteFontPreset,
 } from "@/lib/social-note-fonts";
 import {
+  getDefaultSocialProfileTimeLabel,
+  inferSocialUseAutoTimeLabel,
   resolveSocialProfile,
 } from "@/lib/social-profile";
 
@@ -36,6 +38,7 @@ interface SettingsState {
   selectedTheme: string;
   socialProfileName: string;
   socialProfileTimeLabel: string;
+  socialUseAutoTimeLabel: boolean;
   socialProfileAvatarUrl: string;
   socialFirstPageTopOffset: number;
   socialAvatarSize: number;
@@ -50,6 +53,7 @@ interface SettingsState {
   setSelectedTheme: (theme: string) => void;
   setSocialProfileName: (name: string) => void;
   setSocialProfileTimeLabel: (timeLabel: string) => void;
+  setSocialUseAutoTimeLabel: (useAutoTimeLabel: boolean) => void;
   setSocialProfileAvatarUrl: (avatarUrl: string) => void;
   setSocialFirstPageTopOffset: (offset: number) => void;
   setSocialAvatarSize: (size: number) => void;
@@ -87,6 +91,7 @@ function createDefaultSettingsState() {
     selectedTheme: "默认",
     socialProfileName: defaultSocialState.name,
     socialProfileTimeLabel: defaultSocialState.timeLabel,
+    socialUseAutoTimeLabel: true,
     socialProfileAvatarUrl: defaultSocialState.avatarUrl,
     socialFirstPageTopOffset: defaultSocialState.firstPageTopOffset,
     socialAvatarSize: defaultSocialState.avatarSize,
@@ -161,6 +166,8 @@ const useSettingsStore = create<SettingsState>()(
         setSocialProfileName: (socialProfileName) => set({ socialProfileName }),
         setSocialProfileTimeLabel: (socialProfileTimeLabel) =>
           set({ socialProfileTimeLabel }),
+        setSocialUseAutoTimeLabel: (socialUseAutoTimeLabel) =>
+          set({ socialUseAutoTimeLabel }),
         setSocialProfileAvatarUrl: (socialProfileAvatarUrl) =>
           set({ socialProfileAvatarUrl }),
         setSocialFirstPageTopOffset: (socialFirstPageTopOffset) =>
@@ -189,7 +196,7 @@ const useSettingsStore = create<SettingsState>()(
     },
     {
       name: "settings-storage",
-      version: 7,
+      version: 8,
       storage: createJSONStorage(() => localStorage),
       onRehydrateStorage: () => (_state, error) => {
         if (!error) {
@@ -215,10 +222,14 @@ const useSettingsStore = create<SettingsState>()(
 
         const shouldUpgradeLegacyShortCard =
           nextPreset === "custom" && width === 440 && height === 586;
+        const socialUseAutoTimeLabel =
+          state.socialUseAutoTimeLabel ?? inferSocialUseAutoTimeLabel(state.socialProfileTimeLabel);
         const socialProfile = resolveSocialProfile({
           avatarUrl: state.socialProfileAvatarUrl,
           name: state.socialProfileName,
-          timeLabel: state.socialProfileTimeLabel,
+          timeLabel: socialUseAutoTimeLabel
+            ? getDefaultSocialProfileTimeLabel()
+            : state.socialProfileTimeLabel,
           firstPageTopOffset: clampSocialFirstPageTopOffset(
             state.socialFirstPageTopOffset ?? defaultSocialState.firstPageTopOffset,
           ),
@@ -234,7 +245,8 @@ const useSettingsStore = create<SettingsState>()(
           selectedPreset: shouldUpgradeLegacyShortCard ? defaultPresetId : nextPreset,
           viewMode: state.viewMode ?? "短卡片",
           socialProfileName: socialProfile.name,
-          socialProfileTimeLabel: socialProfile.timeLabel,
+          socialProfileTimeLabel: state.socialProfileTimeLabel ?? socialProfile.timeLabel,
+          socialUseAutoTimeLabel,
           socialProfileAvatarUrl: socialProfile.avatarUrl,
           socialFirstPageTopOffset: socialProfile.firstPageTopOffset,
           socialAvatarSize: socialProfile.avatarSize,

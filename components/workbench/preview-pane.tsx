@@ -66,7 +66,7 @@ export default function PreviewPane() {
           {viewMode}
         </div>
       </div>
-      <div className="min-h-0 flex-1 overflow-auto">
+      <div className="preview-scroll-area min-h-0 flex-1 overflow-y-auto overflow-x-hidden pr-2">
         <div
           className={`mx-auto w-full ${hideOverflow ? "overflow-hidden" : "overflow-visible"}`}
           id="preview"

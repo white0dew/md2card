@@ -56,14 +56,14 @@ render.tablerow = function ({ text }: Tokens.TableRow) {
 render.tablecell = function ({ text }: Tokens.TableCell) {
   return `<td class="md-td">${text}</td>`;
 };
-render.link = function ({ href, title, tokens }: Tokens.Link) {
-  return `<a class="md-link" href="${href}"${title ? ` title="${title}"` : ""}>${tokens}</a>`;
+render.link = function ({ href, title, text }: Tokens.Link) {
+  return `<a class="md-link" href="${href}"${title ? ` title="${title}"` : ""}>${text}</a>`;
 };
 render.image = function ({ href }: Tokens.Image) {
   return `<img class="md-image" src="${href}" />`;
 };
 render.space = function () {
-  return "<br />";
+  return "";
 };
 render.html = function (token: Tokens.HTML) {
   return token.text;

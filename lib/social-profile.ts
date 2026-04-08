@@ -19,6 +19,15 @@ export function getDefaultSocialProfileTimeLabel(now = new Date()) {
   return `${month}/${day}`;
 }
 
+export function inferSocialUseAutoTimeLabel(timeLabel?: string | null) {
+  const normalized = timeLabel?.trim();
+  if (!normalized) {
+    return true;
+  }
+
+  return /^\d{2}\/\d{2}$/.test(normalized);
+}
+
 export function resolveSocialProfile(
   profile?: Partial<SocialProfile> | null,
   now = new Date(),

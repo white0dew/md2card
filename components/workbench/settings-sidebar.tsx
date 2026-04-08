@@ -12,7 +12,10 @@ import {
   socialNoteFontOptions,
   type SocialNoteFontPreset,
 } from "@/lib/social-note-fonts";
-import { defaultSocialProfile } from "@/lib/social-profile";
+import {
+  defaultSocialProfile,
+  getDefaultSocialProfileTimeLabel,
+} from "@/lib/social-profile";
 import useSettingsStore, { viewModes } from "@/stores/settings-store";
 
 const presetOptions = Object.entries(designPresets) as [DesignPresetId, (typeof designPresets)[DesignPresetId]][];
@@ -35,6 +38,7 @@ export default function SettingsSidebar() {
     selectedTheme,
     socialProfileName,
     socialProfileTimeLabel,
+    socialUseAutoTimeLabel,
     socialProfileAvatarUrl,
     socialFirstPageTopOffset,
     socialAvatarSize,
@@ -49,6 +53,7 @@ export default function SettingsSidebar() {
     setSelectedTheme,
     setSocialProfileName,
     setSocialProfileTimeLabel,
+    setSocialUseAutoTimeLabel,
     setSocialProfileAvatarUrl,
     setSocialFirstPageTopOffset,
     setSocialAvatarSize,
@@ -59,6 +64,9 @@ export default function SettingsSidebar() {
   const presetMeta = designPresets[selectedPreset];
   const avatarUploadId = useId();
   const [avatarError, setAvatarError] = useState<string | null>(null);
+  const displayedSocialTimeLabel = socialUseAutoTimeLabel
+    ? getDefaultSocialProfileTimeLabel()
+    : socialProfileTimeLabel;
 
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -255,12 +263,21 @@ export default function SettingsSidebar() {
 
             <label className="block text-sm text-slate-600">
               <span className="mb-2 block">时间</span>
+              <label className="mb-2 flex items-center gap-2 text-xs text-slate-500">
+                <input
+                  checked={socialUseAutoTimeLabel}
+                  onChange={(event) => setSocialUseAutoTimeLabel(event.target.checked)}
+                  type="checkbox"
+                />
+                自动获取当前日期
+              </label>
               <input
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700"
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 disabled:cursor-not-allowed disabled:bg-slate-100"
+                disabled={socialUseAutoTimeLabel}
                 onChange={(event) => setSocialProfileTimeLabel(event.target.value)}
                 placeholder="默认自动填入当天日期"
                 type="text"
-                value={socialProfileTimeLabel}
+                value={displayedSocialTimeLabel}
               />
             </label>
 

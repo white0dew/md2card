@@ -23,6 +23,27 @@ body {
   color: #0f172a;
 }
 
+.preview-scroll-area {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: #94a3b8 #e2e8f0;
+}
+
+.preview-scroll-area::-webkit-scrollbar {
+  width: 10px;
+}
+
+.preview-scroll-area::-webkit-scrollbar-track {
+  background: #e2e8f0;
+  border-radius: 9999px;
+}
+
+.preview-scroll-area::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border: 2px solid #e2e8f0;
+  border-radius: 9999px;
+}
+
 .pages-wrapper {
   display: flex;
   flex-direction: column;

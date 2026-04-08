@@ -8,7 +8,7 @@ export default function TopBar({ exportStatus, exportMessage, onExport }: TopBar
   const buttonLabel = exportStatus === "exporting" ? "导出中..." : "导出 PNG / ZIP";
 
   return (
-    <header className="flex min-h-[72px] flex-col justify-between gap-3 border-b border-slate-200 bg-white/90 px-6 py-4 backdrop-blur md:h-[72px] md:flex-row md:items-center md:py-0">
+    <header className="sticky top-0 z-30 flex min-h-[72px] flex-col justify-between gap-3 border-b border-slate-200 bg-white/90 px-6 py-4 backdrop-blur md:h-[72px] md:flex-row md:items-center md:py-0">
       <div>
         <p className="text-xl font-semibold tracking-tight text-slate-900">MD2Card</p>
         <p className="text-sm text-slate-500">Markdown 转卡片工作台</p>

@@ -12,15 +12,18 @@ import {
 import { groupNodesIntoSections } from "@/lib/pagination-groups";
 import {
   addPageElement,
+  canTextNodeSplitOnCurrentPage,
   createNewPage,
   finalizeCurrentPage,
   fitsNodesOnFreshPage,
+  getNodeTagName,
   handleGenericNode,
   handleImageNode,
   handleListNode,
   handleTableNode,
   handleTextNode,
   isImage,
+  isHeadingTagName,
   isList,
   isTable,
   isTextNodeLike,
@@ -35,6 +38,29 @@ interface PaginatedMarkdownViewerProps {
 }
 
 const yieldBatchSize = 8;
+
+function canKeepHeadingSectionOnCurrentPage(
+  section: Node[],
+  currentPage: HTMLElement,
+  pageHeight: number,
+) {
+  if (
+    section.length < 2 ||
+    !isHeadingTagName(getNodeTagName(section[0])) ||
+    !isTextNodeLike(section[1])
+  ) {
+    return false;
+  }
+
+  const headingClone = section[0].cloneNode(true) as HTMLElement;
+  currentPage.appendChild(headingClone);
+  const headingFits = getMeasuredPageRoot(currentPage).scrollHeight <= pageHeight;
+  const canContinueWithText =
+    headingFits && canTextNodeSplitOnCurrentPage(section[1], currentPage, pageHeight);
+  currentPage.removeChild(headingClone);
+
+  return canContinueWithText;
+}
 
 async function waitForImagesToLoad(container: HTMLElement) {
   const sources = Array.from(container.querySelectorAll("img"))
@@ -156,7 +182,8 @@ export default function PaginatedMarkdownViewer({
                   pageHeight,
                   pageWidth,
                   pageElements.length + 1,
-                )
+                ) &&
+                !canKeepHeadingSectionOnCurrentPage(section, currentPage, pageHeight)
               ) {
                 finalizeCurrentPage(
                   currentPage,
@@ -190,7 +217,11 @@ export default function PaginatedMarkdownViewer({
                   currentPage.removeChild(clone);
 
                   const carryoverNodes = takeTrailingKeepWithNextNodes(currentPage, node);
-                  if (carryoverNodes.length > 0) {
+                  const canKeepHeadingWithSplitText =
+                    carryoverNodes.length > 0 &&
+                    isTextNodeLike(node) &&
+                    canTextNodeSplitOnCurrentPage(node, currentPage, pageHeight);
+                  if (carryoverNodes.length > 0 && !canKeepHeadingWithSplitText) {
                     carryoverNodes.forEach((carryoverNode) => currentPage.removeChild(carryoverNode));
 
                     if (currentPage.childNodes.length > 0) {

@@ -94,6 +94,38 @@ test("settings sidebar exposes social-note font preset control", async () => {
   assert.match(sidebarText, /setSocialFontPreset/);
 });
 
+test("settings sidebar exposes an auto-date toggle for social-note time label", async () => {
+  const sidebarText = await readFile(
+    new URL("../components/workbench/settings-sidebar.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(sidebarText, /自动获取当前日期/);
+  assert.match(sidebarText, /type="checkbox"/);
+  assert.match(sidebarText, /socialUseAutoTimeLabel/);
+  assert.match(sidebarText, /disabled=\{socialUseAutoTimeLabel\}/);
+});
+
+test("settings store persists social-note auto-date preference", async () => {
+  const storeText = await readFile(
+    new URL("../stores/settings-store.ts", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(storeText, /socialUseAutoTimeLabel/);
+  assert.match(storeText, /setSocialUseAutoTimeLabel/);
+});
+
+test("social-note card resolves current date from shared helper when auto-date is enabled", async () => {
+  const cardText = await readFile(
+    new URL("../components/cards/SocialNoteCard.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(cardText, /socialUseAutoTimeLabel/);
+  assert.match(cardText, /getDefaultSocialProfileTimeLabel/);
+});
+
 test("settings store persists social-note font preset selection", async () => {
   const storeText = await readFile(
     new URL("../stores/settings-store.ts", import.meta.url),

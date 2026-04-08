@@ -85,21 +85,21 @@ export default function Workbench() {
   };
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-slate-100">
+    <div className="flex min-h-screen w-full flex-col bg-slate-100 xl:h-screen xl:overflow-hidden">
       <TopBar
         exportMessage={exportMessage}
         exportStatus={exportStatus}
         onExport={handleExport}
       />
-      <main className="flex-1 px-4 py-4 lg:px-5 lg:py-5 xl:overflow-hidden">
-        <div className="mx-auto grid w-full max-w-420 grid-cols-1 items-start gap-5 xl:h-full xl:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)_320px]">
-          <div className="min-w-0 xl:h-full">
+      <main className="flex-1 min-h-0 px-4 py-4 lg:px-5 lg:py-5 xl:h-[calc(100vh-72px)] xl:overflow-hidden">
+        <div className="mx-auto grid w-full max-w-420 grid-cols-1 items-start gap-5 xl:h-full xl:items-stretch xl:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)_320px]">
+          <div className="min-w-0 xl:h-full xl:min-h-0">
             <EditorPane />
           </div>
-          <div className="min-w-0 xl:h-full">
+          <div className="min-w-0 xl:h-full xl:min-h-0">
             <PreviewPane />
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 xl:min-h-0">
             <SettingsSidebar />
           </div>
         </div>
