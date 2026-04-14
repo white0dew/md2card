@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { splitSocialNoteTitle } from "../lib/social-note-title";
 
 test("social-note theme only shows the lead meta block on the first page", async () => {
   const cardText = await readFile(
@@ -145,4 +146,17 @@ test("social-note theme reads the font preset and uses a larger body font size",
   assert.match(cardText, /socialFontPreset/);
   assert.match(cardText, /--social-font-family/);
   assert.match(cardText, /font-size:\s*17px/);
+});
+
+test("social-note only extracts h1 as lead title on the first page", () => {
+  const page = '<p>前文</p><h1 class="md-h1">124大大</h1><p>后文</p>';
+
+  assert.deepEqual(splitSocialNoteTitle(page, 1), {
+    body: page,
+    title: null,
+  });
+  assert.deepEqual(splitSocialNoteTitle(page, 0), {
+    body: "<p>前文</p><p>后文</p>",
+    title: "124大大",
+  });
 });

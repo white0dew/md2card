@@ -445,6 +445,7 @@ pre-commit install --install-hooks
 - `pnpm lint`：运行 ESLint 检查。
 - `pnpm test`：运行 `node --test` 测试集。
 - 使用 agent-browser 进行实际测试，通过截图、点击、采集等方式，只有完成测试之后，本轮任务才能结束
+   - 注意用 9223 端口启动测试 chrome 浏览器
 - 测试 url：http://localhost:3000/ （我已经启动，禁止运行 pnpm run dev）
 
 ## Coding Style & Naming Conventions

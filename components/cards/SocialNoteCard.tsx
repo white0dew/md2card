@@ -17,6 +17,7 @@ import {
   getDefaultSocialProfileTimeLabel,
   resolveSocialProfile,
 } from "@/lib/social-profile";
+import { splitSocialNoteTitle } from "@/lib/social-note-title";
 import useSettingsStore from "@/stores/settings-store";
 
 const render = new Renderer();
@@ -166,16 +167,41 @@ const CardContainer = styled.article`
     line-height: 1.22;
   }
 
+  .md-h1 {
+    margin: 20px 0 10px;
+    font-size: 27px;
+    line-height: 1.1;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--social-accent-color, ${defaultSocialNoteAccentColor});
+  }
+
   .md-h2,
   .md-h3,
   .md-h4,
   .md-h5,
   .md-h6 {
     margin: 16px 0 8px;
-    font-size: 21px;
     line-height: 1.12;
     font-weight: 700;
     color: var(--social-accent-color, ${defaultSocialNoteAccentColor});
+  }
+
+  .md-h2 {
+    font-size: 23px;
+  }
+
+  .md-h3 {
+    font-size: 20px;
+  }
+
+  .md-h4 {
+    font-size: 18px;
+  }
+
+  .md-h5,
+  .md-h6 {
+    font-size: 17px;
   }
 
   .md-blockquote {
@@ -257,18 +283,6 @@ const CardContainer = styled.article`
   }
 `;
 
-function extractTitle(page: string) {
-  const match = page.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
-  if (!match) {
-    return { body: page, title: null };
-  }
-
-  return {
-    body: page.replace(match[0], "").replace(/^<br\s*\/?>/i, ""),
-    title: match[1],
-  };
-}
-
 const Card: FC<CardProps> = ({
   page,
   width: settingWidth,
@@ -279,7 +293,7 @@ const Card: FC<CardProps> = ({
 }) => {
   const width = settingWidth;
   const height = settingHeight === -1 ? "auto" : settingHeight;
-  const { body, title } = extractTitle(page);
+  const { body, title } = splitSocialNoteTitle(page, pageIndex);
   const showLeadMeta = pageIndex === 0;
   const socialProfileName = useSettingsStore((state) => state.socialProfileName);
   const socialProfileTimeLabel = useSettingsStore((state) => state.socialProfileTimeLabel);
