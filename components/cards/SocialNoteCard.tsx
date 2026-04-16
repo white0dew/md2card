@@ -261,9 +261,29 @@ const CardContainer = styled.article`
     font-size: 0.92em;
   }
 
+  .md-ul,
+  .md-ol {
+    margin: 0 0 14px;
+    padding-left: 1.4em;
+  }
+
+  .md-ul {
+    list-style: disc;
+  }
+
+  .md-ol {
+    list-style: decimal;
+  }
+
   .md-listitem {
     margin: 4px 0;
     line-height: 1.18;
+  }
+
+  .md-ul .md-listitem::marker,
+  .md-ol .md-listitem::marker {
+    color: var(--social-accent-color, ${defaultSocialNoteAccentColor});
+    font-weight: 700;
   }
 
   .md-link {

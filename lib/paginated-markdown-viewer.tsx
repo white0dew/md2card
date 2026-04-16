@@ -62,6 +62,10 @@ function canKeepHeadingSectionOnCurrentPage(
   return canContinueWithText;
 }
 
+function hasSplittableSectionBlock(section: Node[]) {
+  return section.some((node) => isList(node) || isTable(node));
+}
+
 async function waitForImagesToLoad(container: HTMLElement) {
   const sources = Array.from(container.querySelectorAll("img"))
     .map((image) => image.getAttribute("src"))
@@ -183,6 +187,7 @@ export default function PaginatedMarkdownViewer({
                   pageWidth,
                   pageElements.length + 1,
                 ) &&
+                !hasSplittableSectionBlock(section) &&
                 !canKeepHeadingSectionOnCurrentPage(section, currentPage, pageHeight)
               ) {
                 finalizeCurrentPage(
@@ -253,6 +258,8 @@ export default function PaginatedMarkdownViewer({
 
                   if (
                     currentPage.childNodes.length > 0 &&
+                    !isList(node) &&
+                    !isTable(node) &&
                     fitsNodesOnFreshPage(
                       [node],
                       wrapper,

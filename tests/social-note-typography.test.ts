@@ -41,3 +41,13 @@ test("social-note theme gives body h1 a larger title size", async () => {
 
   assert.equal(h1FontSize, "27px");
 });
+
+test("social-note theme styles ordered and unordered lists with visible markers", async () => {
+  const cardText = await readFile(
+    new URL("../components/cards/SocialNoteCard.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(cardText, /\.md-ul,\s*[\r\n\s]*\.md-ol\s*\{[^}]*padding-left:\s*1\.4em;/s);
+  assert.match(cardText, /\.md-ol\s+\.md-listitem::marker\s*\{/s);
+});

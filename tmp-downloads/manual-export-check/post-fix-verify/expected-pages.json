@@ -1,7 +1,0 @@
-[
-  "一级标题\n\n这是一个很长很长的段落，用于测试分页系统对普通文本的智能分割能力。这段话会被自动拆分到多个页面中，确保页面不会出现内容溢出问题。\n\n\n",
-  "二级标题\n无序列表项 A\n无序列表项 B\n无序列表项 C\n\n\n有序项一\n有序项二\n有序项三\n\n",
-  "表格示例\n姓名\t分数\t等级\nAlice\t95\tA\nBob\t88\tB\nCharlie\t92\tA\nDiana\t84\tB\nEthan\t77\tC\nFiona\t89\tB\nGeorge\t91\tA",
-  "图片示例\n\n\n\n引用和代码\n这是一段引用内容，用于测试分页逻辑。\n\n\n\n行内代码示例：console.log('Hello')",
-  "\n\n    function greet(name) {\n  console.log(\"Hello \" + name);\n}\ngreet(\"World\");\n  \n\n\n\n\n\n分页测试结束。"
-]

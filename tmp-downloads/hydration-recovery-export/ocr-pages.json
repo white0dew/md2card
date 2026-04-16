@@ -1,6 +1,0 @@
-[
-  "青玉白露\n04/03\n一级标题\n这是一个很长很长的段落，用于测试分页系统对普通文\n本的智能分割能力。这段话会被自动拆分到多个页面\n中，确保页面不会出现内容溢出问题。\n二级标题\n无序列表项A\n无序列表项 B\n无序列表项C\n有序项一\n有序项二\n有序项三",
-  "表格示例\n姓名\nAlice\nBob\nCharlie\nDiana\nEthan\nFiona\nGeorge\n分数\n95\n88\n92\n84\n77\n89\n91\n等级\nA\nB\nA\nB\nC\nB\nA",
-  "图片示例\nMD2Card Placeholder\nLocal preview asset for stable export and testing.",
-  "引用和代码\n|这是一段引用内容，用于测试分页逻辑。\n行内代码示例：console. log（'Hello'）\nfunction greet（name）｛\nconsole. log（\"Hello \" + name）；\n｝\ngreet （\"World\"\"）；\n分页测试结束。"
-]
