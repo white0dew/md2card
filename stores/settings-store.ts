@@ -28,6 +28,7 @@ import {
 
 export const viewModes = ["长卡片", "短卡片"] as const;
 export type ViewMode = (typeof viewModes)[number];
+export type SocialFontScaleMode = "body" | "all";
 
 interface SettingsState {
   cardWidth: number;
@@ -45,6 +46,8 @@ interface SettingsState {
   socialBackgroundColor: string;
   socialAccentColor: string;
   socialFontPreset: SocialNoteFontPreset;
+  socialFontScaleMode: SocialFontScaleMode;
+  socialFontScale: number;
   setCardWidth: (width: number) => void;
   setCardHeight: (height: number) => void;
   setSelectedPreset: (preset: DesignPresetId) => void;
@@ -60,6 +63,8 @@ interface SettingsState {
   setSocialBackgroundColor: (color: string) => void;
   setSocialAccentColor: (color: string) => void;
   setSocialFontPreset: (preset: SocialNoteFontPreset) => void;
+  setSocialFontScaleMode: (mode: SocialFontScaleMode) => void;
+  setSocialFontScale: (scale: number) => void;
 }
 
 const defaultWidth = defaultCanvasSize.width;
@@ -69,6 +74,9 @@ const minSocialFirstPageTopOffset = 0;
 const maxSocialFirstPageTopOffset = 120;
 const minSocialAvatarSize = 32;
 const maxSocialAvatarSize = 96;
+const minSocialFontScale = 0.85;
+const maxSocialFontScale = 1.3;
+const defaultSocialFontScale = 1;
 
 function clampSocialFirstPageTopOffset(offset: number) {
   return Math.min(
@@ -79,6 +87,22 @@ function clampSocialFirstPageTopOffset(offset: number) {
 
 function clampSocialAvatarSize(size: number) {
   return Math.min(maxSocialAvatarSize, Math.max(minSocialAvatarSize, size));
+}
+
+function clampSocialFontScale(scale: number) {
+  return Math.min(maxSocialFontScale, Math.max(minSocialFontScale, scale));
+}
+
+function resolveSocialFontScaleMode(
+  mode: SocialFontScaleMode | string | null | undefined,
+): SocialFontScaleMode {
+  return mode === "all" ? "all" : "body";
+}
+
+function resolveSocialFontScale(scale: unknown) {
+  return typeof scale === "number" && Number.isFinite(scale)
+    ? clampSocialFontScale(scale)
+    : defaultSocialFontScale;
 }
 
 function createDefaultSettingsState() {
@@ -98,6 +122,8 @@ function createDefaultSettingsState() {
     socialBackgroundColor: defaultSocialNoteBackgroundColor,
     socialAccentColor: defaultSocialNoteAccentColor,
     socialFontPreset: defaultSocialNoteFontPreset,
+    socialFontScaleMode: "body" as SocialFontScaleMode,
+    socialFontScale: defaultSocialFontScale,
   };
 }
 
@@ -192,11 +218,19 @@ const useSettingsStore = create<SettingsState>()(
           set({
             socialFontPreset: resolveSocialNoteFontPreset(socialFontPreset),
           }),
+        setSocialFontScaleMode: (socialFontScaleMode) =>
+          set({
+            socialFontScaleMode: resolveSocialFontScaleMode(socialFontScaleMode),
+          }),
+        setSocialFontScale: (socialFontScale) =>
+          set({
+            socialFontScale: resolveSocialFontScale(socialFontScale),
+          }),
       };
     },
     {
       name: "settings-storage",
-      version: 8,
+      version: 9,
       storage: createJSONStorage(() => localStorage),
       onRehydrateStorage: () => (_state, error) => {
         if (!error) {
@@ -255,6 +289,8 @@ const useSettingsStore = create<SettingsState>()(
           ),
           socialAccentColor: resolveSocialNoteAccentColor(state.socialAccentColor),
           socialFontPreset: resolveSocialNoteFontPreset(state.socialFontPreset),
+          socialFontScaleMode: resolveSocialFontScaleMode(state.socialFontScaleMode),
+          socialFontScale: resolveSocialFontScale(state.socialFontScale),
         };
       },
     },

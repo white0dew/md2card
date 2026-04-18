@@ -39,7 +39,8 @@ test("social-note theme gives body h1 a larger title size", async () => {
 
   const h1FontSize = cardText.match(/\.md-h1\s*\{[^}]*font-size:\s*([^;]+);/s)?.[1]?.trim();
 
-  assert.equal(h1FontSize, "27px");
+  assert.equal(h1FontSize, "${toScaledFontSize(BASE_H1_FONT_SIZE)}");
+  assert.match(cardText, /BASE_H1_FONT_SIZE\s*=\s*27/);
 });
 
 test("social-note theme styles ordered and unordered lists with visible markers", async () => {

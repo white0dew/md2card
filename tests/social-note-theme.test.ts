@@ -137,6 +137,31 @@ test("settings store persists social-note font preset selection", async () => {
   assert.match(storeText, /setSocialFontPreset/);
 });
 
+test("settings store persists social-note font scale settings", async () => {
+  const storeText = await readFile(
+    new URL("../stores/settings-store.ts", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(storeText, /socialFontScaleMode/);
+  assert.match(storeText, /socialFontScale/);
+  assert.match(storeText, /setSocialFontScaleMode/);
+  assert.match(storeText, /setSocialFontScale/);
+});
+
+test("settings sidebar exposes social-note font scale controls", async () => {
+  const sidebarText = await readFile(
+    new URL("../components/workbench/settings-sidebar.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(sidebarText, /字号缩放/);
+  assert.match(sidebarText, /social-font-scale-mode/);
+  assert.match(sidebarText, /social-font-scale/);
+  assert.match(sidebarText, /仅正文/);
+  assert.match(sidebarText, /整体/);
+});
+
 test("social-note theme reads the font preset and uses a larger body font size", async () => {
   const cardText = await readFile(
     new URL("../components/cards/SocialNoteCard.tsx", import.meta.url),
@@ -145,7 +170,21 @@ test("social-note theme reads the font preset and uses a larger body font size",
 
   assert.match(cardText, /socialFontPreset/);
   assert.match(cardText, /--social-font-family/);
-  assert.match(cardText, /font-size:\s*17px/);
+  assert.match(cardText, /BASE_BODY_FONT_SIZE\s*=\s*17/);
+  assert.match(cardText, /--social-body-font-size/);
+});
+
+test("social-note theme reads font scale settings and outputs scale variables", async () => {
+  const cardText = await readFile(
+    new URL("../components/cards/SocialNoteCard.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(cardText, /socialFontScaleMode/);
+  assert.match(cardText, /socialFontScale/);
+  assert.match(cardText, /--social-font-scale/);
+  assert.match(cardText, /--social-body-font-size/);
+  assert.match(cardText, /calc\(/);
 });
 
 test("social-note only extracts h1 as lead title on the first page", () => {

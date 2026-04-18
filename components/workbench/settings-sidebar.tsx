@@ -16,7 +16,10 @@ import {
   defaultSocialProfile,
   getDefaultSocialProfileTimeLabel,
 } from "@/lib/social-profile";
-import useSettingsStore, { viewModes } from "@/stores/settings-store";
+import useSettingsStore, {
+  type SocialFontScaleMode,
+  viewModes,
+} from "@/stores/settings-store";
 
 const presetOptions = Object.entries(designPresets) as [DesignPresetId, (typeof designPresets)[DesignPresetId]][];
 const supportedAvatarTypes = [
@@ -45,6 +48,8 @@ export default function SettingsSidebar() {
     socialBackgroundColor,
     socialAccentColor,
     socialFontPreset,
+    socialFontScaleMode,
+    socialFontScale,
     setCardWidth,
     setCardHeight,
     setSelectedPreset,
@@ -60,6 +65,8 @@ export default function SettingsSidebar() {
     setSocialBackgroundColor,
     setSocialAccentColor,
     setSocialFontPreset,
+    setSocialFontScaleMode,
+    setSocialFontScale,
   } = useSettingsStore();
   const presetMeta = designPresets[selectedPreset];
   const avatarUploadId = useId();
@@ -67,6 +74,7 @@ export default function SettingsSidebar() {
   const displayedSocialTimeLabel = socialUseAutoTimeLabel
     ? getDefaultSocialProfileTimeLabel()
     : socialProfileTimeLabel;
+  const socialFontScaleLabel = `${socialFontScale.toFixed(2)}x`;
 
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -359,6 +367,42 @@ export default function SettingsSidebar() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div className="space-y-3 rounded-xl border border-slate-200 bg-white/80 p-3">
+              <div className="flex items-center justify-between gap-3">
+                <label
+                  className="block text-sm text-slate-600"
+                  htmlFor="social-font-scale-mode"
+                >
+                  字号缩放
+                </label>
+                <span className="text-xs font-medium text-slate-500">{socialFontScaleLabel}</span>
+              </div>
+              <select
+                className="w-full rounded-lg border border-slate-200 bg-white p-2 text-sm text-slate-700"
+                id="social-font-scale-mode"
+                onChange={(event) =>
+                  setSocialFontScaleMode(event.target.value as SocialFontScaleMode)
+                }
+                value={socialFontScaleMode}
+              >
+                <option value="body">仅正文</option>
+                <option value="all">整体</option>
+              </select>
+              <input
+                className="w-full accent-slate-900"
+                id="social-font-scale"
+                max={1.3}
+                min={0.85}
+                onChange={(event) => setSocialFontScale(Number(event.target.value))}
+                step={0.05}
+                type="range"
+                value={socialFontScale}
+              />
+              <p className="text-xs leading-5 text-slate-500">
+                仅正文只调整正文基准字号；整体会连同标题、小字信息和列表一起缩放。
+              </p>
             </div>
 
             <ColorPalettePicker

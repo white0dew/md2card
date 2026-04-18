@@ -20,6 +20,31 @@ import {
 import { splitSocialNoteTitle } from "@/lib/social-note-title";
 import useSettingsStore from "@/stores/settings-store";
 
+const DEFAULT_FONT_SCALE = 1;
+const BASE_PROFILE_NAME_FONT_SIZE = 22;
+const BASE_TIME_FONT_SIZE = 14;
+const BASE_SOCIAL_TITLE_FONT_SIZE = 31;
+const BASE_BODY_FONT_SIZE = 17;
+const BASE_H1_FONT_SIZE = 27;
+const BASE_H2_FONT_SIZE = 23;
+const BASE_H3_FONT_SIZE = 20;
+const BASE_H4_FONT_SIZE = 18;
+const BASE_H5_FONT_SIZE = 17;
+const BASE_TABLE_FONT_SIZE = 15;
+const BASE_PRE_FONT_SIZE = 14;
+
+function toPx(size: number) {
+  return `${size}px`;
+}
+
+function toScaledFontSize(size: number) {
+  return `calc(${size}px * var(--social-all-font-scale, ${DEFAULT_FONT_SCALE}))`;
+}
+
+function toBodyScaledFontSize(size: number) {
+  return `calc(${size}px * var(--social-font-scale, ${DEFAULT_FONT_SCALE}))`;
+}
+
 const render = new Renderer();
 render.heading = function ({ text, depth }: Tokens.Heading) {
   return `<h${depth} class="md-h${depth}">${text}</h${depth}>`;
@@ -112,7 +137,7 @@ const CardContainer = styled.article`
   }
 
   .social-name {
-    font-size: 22px;
+    font-size: ${toScaledFontSize(BASE_PROFILE_NAME_FONT_SIZE)};
     font-weight: 700;
     line-height: 1;
   }
@@ -144,13 +169,13 @@ const CardContainer = styled.article`
   .social-time {
     margin-top: 6px;
     color: #7c7c7c;
-    font-size: 14px;
+    font-size: ${toScaledFontSize(BASE_TIME_FONT_SIZE)};
     line-height: 1;
   }
 
   .social-title {
     margin: 0 0 18px;
-    font-size: 31px;
+    font-size: ${toScaledFontSize(BASE_SOCIAL_TITLE_FONT_SIZE)};
     font-weight: 700;
     line-height: 1.1;
     letter-spacing: -0.02em;
@@ -158,7 +183,7 @@ const CardContainer = styled.article`
   }
 
   .card-content {
-    font-size: 17px;
+    font-size: var(--social-body-font-size, ${toPx(BASE_BODY_FONT_SIZE)});
     line-height: 1.22;
   }
 
@@ -169,7 +194,7 @@ const CardContainer = styled.article`
 
   .md-h1 {
     margin: 20px 0 10px;
-    font-size: 27px;
+    font-size: ${toScaledFontSize(BASE_H1_FONT_SIZE)};
     line-height: 1.1;
     font-weight: 700;
     letter-spacing: -0.02em;
@@ -188,20 +213,20 @@ const CardContainer = styled.article`
   }
 
   .md-h2 {
-    font-size: 23px;
+    font-size: ${toScaledFontSize(BASE_H2_FONT_SIZE)};
   }
 
   .md-h3 {
-    font-size: 20px;
+    font-size: ${toScaledFontSize(BASE_H3_FONT_SIZE)};
   }
 
   .md-h4 {
-    font-size: 18px;
+    font-size: ${toScaledFontSize(BASE_H4_FONT_SIZE)};
   }
 
   .md-h5,
   .md-h6 {
-    font-size: 17px;
+    font-size: ${toScaledFontSize(BASE_H5_FONT_SIZE)};
   }
 
   .md-blockquote {
@@ -235,7 +260,7 @@ const CardContainer = styled.article`
     width: 100%;
     border-collapse: collapse;
     margin: 18px 0;
-    font-size: 15px;
+    font-size: ${toScaledFontSize(BASE_TABLE_FONT_SIZE)};
   }
 
   .md-th,
@@ -251,7 +276,7 @@ const CardContainer = styled.article`
     padding: 14px 16px;
     background: #f5f5f5;
     overflow-x: auto;
-    font-size: 14px;
+    font-size: ${toScaledFontSize(BASE_PRE_FONT_SIZE)};
   }
 
   .md-codespan {
@@ -326,6 +351,8 @@ const Card: FC<CardProps> = ({
   const socialBackgroundColor = useSettingsStore((state) => state.socialBackgroundColor);
   const socialAccentColor = useSettingsStore((state) => state.socialAccentColor);
   const socialFontPreset = useSettingsStore((state) => state.socialFontPreset);
+  const socialFontScaleMode = useSettingsStore((state) => state.socialFontScaleMode);
+  const socialFontScale = useSettingsStore((state) => state.socialFontScale);
   const socialProfile = resolveSocialProfile(
     {
       avatarUrl: socialProfileAvatarUrl,
@@ -337,12 +364,19 @@ const Card: FC<CardProps> = ({
       avatarSize: socialAvatarSize,
     },
   );
+  const allFontScale = socialFontScaleMode === "all" ? socialFontScale : DEFAULT_FONT_SCALE;
   const cardStyle = {
     width,
     height,
     ["--social-background-color" as string]: socialBackgroundColor,
     ["--social-accent-color" as string]: socialAccentColor,
     ["--social-font-family" as string]: getSocialNoteFontFamily(socialFontPreset),
+    ["--social-font-scale" as string]: String(socialFontScale),
+    ["--social-all-font-scale" as string]: String(allFontScale),
+    ["--social-body-font-size" as string]:
+      socialFontScaleMode === "body"
+        ? toBodyScaledFontSize(BASE_BODY_FONT_SIZE)
+        : toPx(BASE_BODY_FONT_SIZE),
   } as CSSProperties;
 
   return (
