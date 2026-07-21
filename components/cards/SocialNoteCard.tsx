@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties, FC, Ref } from "react";
+import { useContext, type CSSProperties, type FC, type Ref } from "react";
 import styled from "styled-components";
 import { Renderer, Tokens } from "marked";
 import { getSocialNoteUsableHeight } from "@/lib/card-measurements";
@@ -16,9 +16,12 @@ import {
 import {
   getDefaultSocialProfileTimeLabel,
   resolveSocialProfile,
+  type SocialProfile,
 } from "@/lib/social-profile";
 import { splitSocialNoteTitle } from "@/lib/social-note-title";
 import useSettingsStore from "@/stores/settings-store";
+import { HeadlessSocialProfileContext } from "@/components/headless/headless-social-profile-context";
+import type { HeadlessProfile } from "@/lib/headless-input";
 
 const DEFAULT_FONT_SCALE = 1;
 const BASE_PROFILE_NAME_FONT_SIZE = 22;
@@ -331,18 +334,74 @@ const CardContainer = styled.article`
   }
 `;
 
-const Card: FC<CardProps> = ({
+interface SocialCardPresentation {
+  profile: SocialProfile;
+  backgroundColor: string;
+  accentColor: string;
+  fontPreset: string;
+  fontScaleMode: "body" | "all";
+  fontScale: number;
+  lineHeight: number;
+}
+
+function SocialCardBody({
   page,
   width: settingWidth,
   height: settingHeight,
   pageIndex = 0,
   containerRef,
   contentRef,
-}) => {
+  presentation,
+}: CardProps & { presentation: SocialCardPresentation }) {
   const width = settingWidth;
   const height = settingHeight === -1 ? "auto" : settingHeight;
   const { body, title } = splitSocialNoteTitle(page, pageIndex);
   const showLeadMeta = pageIndex === 0;
+  const { profile: socialProfile } = presentation;
+  const allFontScale = presentation.fontScaleMode === "all" ? presentation.fontScale : DEFAULT_FONT_SCALE;
+  const imageMaxHeight = typeof settingHeight === "number" && settingHeight > 0
+    ? toPx(Math.round(settingHeight * SOCIAL_NOTE_IMAGE_MAX_HEIGHT_RATIO))
+    : "38vh";
+  const cardStyle = {
+    width,
+    height,
+    ["--social-background-color" as string]: presentation.backgroundColor,
+    ["--social-accent-color" as string]: presentation.accentColor,
+    ["--social-font-family" as string]: getSocialNoteFontFamily(presentation.fontPreset),
+    ["--social-font-scale" as string]: String(presentation.fontScale),
+    ["--social-all-font-scale" as string]: String(allFontScale),
+    ["--social-line-height" as string]: String(presentation.lineHeight),
+    ["--social-image-max-height" as string]: imageMaxHeight,
+    ["--social-body-font-size" as string]: presentation.fontScaleMode === "body"
+      ? toBodyScaledFontSize(BASE_BODY_FONT_SIZE)
+      : toPx(BASE_BODY_FONT_SIZE),
+  } as CSSProperties;
+
+  return (
+    <CardContainer ref={contentRef as Ref<HTMLElement>} style={cardStyle}>
+      {showLeadMeta ? (
+        <div style={{ paddingTop: socialProfile.firstPageTopOffset }}>
+          <div className="social-meta">
+            <img alt="avatar" className="social-avatar" src={socialProfile.avatarUrl} style={{ height: socialProfile.avatarSize, width: socialProfile.avatarSize }} />
+            <div>
+              <div className="social-name-row">
+                <div className="social-name">{socialProfile.name}</div>
+                <span aria-label="已认证" className="social-verified-badge" role="img">
+                  <svg fill="none" viewBox="0 0 24 24"><path d="M9.55 16.2 5.8 12.45l1.4-1.4 2.35 2.35 7.25-7.25 1.4 1.4-8.65 8.65Z" fill="currentColor" /></svg>
+                </span>
+              </div>
+              <div className="social-time">{socialProfile.timeLabel}</div>
+            </div>
+          </div>
+          {title ? <h1 className="social-title" dangerouslySetInnerHTML={{ __html: title }} /> : null}
+        </div>
+      ) : null}
+      <div className="card-content" ref={containerRef as Ref<HTMLDivElement>} dangerouslySetInnerHTML={{ __html: body }} />
+    </CardContainer>
+  );
+}
+
+function StoredCard(props: CardProps) {
   const socialProfileName = useSettingsStore((state) => state.socialProfileName);
   const socialProfileTimeLabel = useSettingsStore((state) => state.socialProfileTimeLabel);
   const socialUseAutoTimeLabel = useSettingsStore((state) => state.socialUseAutoTimeLabel);
@@ -368,65 +427,32 @@ const Card: FC<CardProps> = ({
       avatarSize: socialAvatarSize,
     },
   );
-  const allFontScale = socialFontScaleMode === "all" ? socialFontScale : DEFAULT_FONT_SCALE;
-  const imageMaxHeight =
-    typeof settingHeight === "number" && settingHeight > 0
-      ? toPx(Math.round(settingHeight * SOCIAL_NOTE_IMAGE_MAX_HEIGHT_RATIO))
-      : "38vh";
-  const cardStyle = {
-    width,
-    height,
-    ["--social-background-color" as string]: socialBackgroundColor,
-    ["--social-accent-color" as string]: socialAccentColor,
-    ["--social-font-family" as string]: getSocialNoteFontFamily(socialFontPreset),
-    ["--social-font-scale" as string]: String(socialFontScale),
-    ["--social-all-font-scale" as string]: String(allFontScale),
-    ["--social-line-height" as string]: String(socialLineHeight),
-    ["--social-image-max-height" as string]: imageMaxHeight,
-    ["--social-body-font-size" as string]:
-      socialFontScaleMode === "body"
-        ? toBodyScaledFontSize(BASE_BODY_FONT_SIZE)
-        : toPx(BASE_BODY_FONT_SIZE),
-  } as CSSProperties;
+  return <SocialCardBody {...props} presentation={{
+    profile: socialProfile,
+    backgroundColor: socialBackgroundColor,
+    accentColor: socialAccentColor,
+    fontPreset: socialFontPreset,
+    fontScaleMode: socialFontScaleMode,
+    fontScale: socialFontScale,
+    lineHeight: socialLineHeight,
+  }} />;
+}
 
-  return (
-    <CardContainer ref={contentRef as Ref<HTMLElement>} style={cardStyle}>
-      {showLeadMeta ? (
-        <div style={{ paddingTop: socialProfile.firstPageTopOffset }}>
-          <div className="social-meta">
-            <img
-              alt="avatar"
-              className="social-avatar"
-              src={socialProfile.avatarUrl}
-              style={{ height: socialProfile.avatarSize, width: socialProfile.avatarSize }}
-            />
-            <div>
-              <div className="social-name-row">
-                <div className="social-name">{socialProfile.name}</div>
-                <span aria-label="已认证" className="social-verified-badge" role="img">
-                  <svg fill="none" viewBox="0 0 24 24">
-                    <path
-                      d="M9.55 16.2 5.8 12.45l1.4-1.4 2.35 2.35 7.25-7.25 1.4 1.4-8.65 8.65Z"
-                      fill="currentColor"
-                    />
-                  </svg>
-                </span>
-              </div>
-              <div className="social-time">{socialProfile.timeLabel}</div>
-            </div>
-          </div>
-          {title ? (
-            <h1 className="social-title" dangerouslySetInnerHTML={{ __html: title }} />
-          ) : null}
-        </div>
-      ) : null}
-      <div
-        className="card-content"
-        ref={containerRef as Ref<HTMLDivElement>}
-        dangerouslySetInnerHTML={{ __html: body }}
-      />
-    </CardContainer>
-  );
+function HeadlessCard({ profile, ...props }: CardProps & { profile: HeadlessProfile }) {
+  return <SocialCardBody {...props} presentation={{
+    profile: resolveSocialProfile(profile),
+    backgroundColor: defaultSocialNoteBackgroundColor,
+    accentColor: defaultSocialNoteAccentColor,
+    fontPreset: "songti",
+    fontScaleMode: "body",
+    fontScale: DEFAULT_FONT_SCALE,
+    lineHeight: 1.22,
+  }} />;
+}
+
+const Card: FC<CardProps> = (props) => {
+  const headlessProfile = useContext(HeadlessSocialProfileContext);
+  return headlessProfile ? <HeadlessCard {...props} profile={headlessProfile} /> : <StoredCard {...props} />;
 };
 
 const ThemeConfig: CardConfig = {

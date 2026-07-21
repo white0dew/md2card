@@ -1,6 +1,7 @@
 interface ExportOptions {
   canvasWidth?: number;
   canvasHeight?: number;
+  pixelRatio?: number;
 }
 
 function shouldCacheBustImages(element: HTMLElement) {
@@ -28,7 +29,7 @@ export async function renderElementToPngBlob(
     canvasHeight: options.canvasHeight,
     cacheBust: shouldCacheBustImages(element),
     imagePlaceholder: fallbackImage,
-    pixelRatio: 2,
+    pixelRatio: options.pixelRatio ?? 2,
   });
 
   if (!blob) {

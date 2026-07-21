@@ -1,6 +1,8 @@
 const headingTags = new Set(["H1", "H2", "H3", "H4", "H5", "H6"]);
 const atomicBlockTags = new Set(["IMG", "BLOCKQUOTE", "PRE", "TABLE", "HR"]);
+const safelySplittableTextTags = new Set(["P", "SPAN", "DIV"]);
 const inlineFormattingTags = new Set(["STRONG", "B"]);
+const clearlyUnderfilledRatio = 0.72;
 const preferredSplitChars = new Set([
   " ",
   "\n",
@@ -26,6 +28,10 @@ export function isHeadingTag(tagName: string | null | undefined) {
 
 export function isAtomicBlockTag(tagName: string | null | undefined) {
   return Boolean(tagName && atomicBlockTags.has(tagName));
+}
+
+export function isSafelySplittableTextTag(tagName: string | null | undefined) {
+  return Boolean(tagName && safelySplittableTextTags.has(tagName));
 }
 
 export function isInlineFormattingTag(tagName: string | null | undefined) {
@@ -97,4 +103,47 @@ export function rebalanceSplitIndex(
   }
 
   return Math.max(0, Math.min(totalItems, nextIndex));
+}
+
+export function rebalanceTextSplitIndex(
+  totalChars: number,
+  proposedIndex: number,
+  minChunkSize = 32,
+  hasExistingContent = true,
+) {
+  return rebalanceSplitIndex(
+    totalChars,
+    proposedIndex,
+    minChunkSize,
+    hasExistingContent,
+  );
+}
+
+interface UnderfilledTextFillInput {
+  canSplit: boolean;
+  hasExistingContent: boolean;
+  incomingIsSafelySplittableText: boolean;
+  isClearlyUnderfilled: boolean;
+}
+
+export function isContentBottomClearlyUnderfilled(
+  pageContentBottom: number,
+  pageTop: number,
+  pageHeight: number,
+) {
+  return pageContentBottom - pageTop <= pageHeight * clearlyUnderfilledRatio;
+}
+
+export function shouldFillUnderfilledPageWithText({
+  canSplit,
+  hasExistingContent,
+  incomingIsSafelySplittableText,
+  isClearlyUnderfilled,
+}: UnderfilledTextFillInput) {
+  return (
+    hasExistingContent &&
+    incomingIsSafelySplittableText &&
+    canSplit &&
+    isClearlyUnderfilled
+  );
 }

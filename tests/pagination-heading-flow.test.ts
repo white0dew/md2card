@@ -1,23 +1,11 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { findTrailingKeepWithNextCount } from "@/lib/pagination-rules";
 
-test("paginated viewer checks whether a heading section can continue with split text before moving the whole section", async () => {
-  const source = await readFile(
-    new URL("../lib/paginated-markdown-viewer.tsx", import.meta.url),
-    "utf8",
-  );
-
-  assert.match(source, /canTextNodeSplitOnCurrentPage/);
-  assert.match(source, /isHeadingTagName/);
+test("a heading stays with its safely splittable following paragraph", () => {
+  assert.equal(findTrailingKeepWithNextCount(["P", "H2"], "P"), 1);
 });
 
-test("paginator utils exposes text split detection for heading continuation decisions", async () => {
-  const source = await readFile(
-    new URL("../lib/paginator-utils.tsx", import.meta.url),
-    "utf8",
-  );
-
-  assert.match(source, /export function canTextNodeSplitOnCurrentPage/);
-  assert.match(source, /findTextSplit\(/);
+test("a heading is carried with an atomic successor to avoid an orphan", () => {
+  assert.equal(findTrailingKeepWithNextCount(["P", "H2"], "PRE"), 1);
 });

@@ -6,9 +6,12 @@ import {
   findPreferredTextSplitIndex,
   isHeadingTag,
   isAtomicBlockTag,
+  isContentBottomClearlyUnderfilled,
   isImageContainerTag,
   isInlineFormattingTag,
+  isSafelySplittableTextTag,
   rebalanceSplitIndex,
+  rebalanceTextSplitIndex,
 } from "@/lib/pagination-rules";
 
 export function copyAttributes(source: Element, destination: Element) {
@@ -456,6 +459,39 @@ export function canTextNodeSplitOnCurrentPage(
   return findTextSplit(holder, currentPage, pageHeight) > 0;
 }
 
+export function isSafelySplittableTextNode(node: Node) {
+  if (node.nodeType === Node.TEXT_NODE) {
+    return true;
+  }
+
+  if (node.nodeType !== Node.ELEMENT_NODE) {
+    return false;
+  }
+
+  const element = node as Element;
+  if (!isSafelySplittableTextTag(element.tagName)) {
+    return false;
+  }
+
+  return element.childElementCount === 0;
+}
+
+export function isPageClearlyUnderfilled(page: HTMLElement, pageHeight: number) {
+  const pageRoot = getMeasuredPageRoot(page);
+  const pageTop = pageRoot.getBoundingClientRect().top;
+  const contentRect = page.getBoundingClientRect();
+  const pageContentBottom = Math.max(
+    contentRect.bottom,
+    contentRect.top + page.scrollHeight,
+  );
+
+  return isContentBottomClearlyUnderfilled(
+    pageContentBottom,
+    pageTop,
+    pageHeight,
+  );
+}
+
 export function handleTextNode(
   node: Node,
   currentPage: HTMLElement,
@@ -464,6 +500,7 @@ export function handleTextNode(
   CardComponent: FC<CardProps>,
   pageHeight: number,
   pageWidth: number,
+  rebalanceAdjacentText = false,
 ) {
   const clone = node.cloneNode(true) as HTMLElement;
 
@@ -504,8 +541,37 @@ export function handleTextNode(
       ? document.createElement("span")
       : createElementClone(node as HTMLElement);
   holder.textContent = clone.textContent;
-  const splitAt = findTextSplit(holder, currentPage, pageHeight);
   const fullText = clone.textContent || "";
+  const measuredSplitAt = findTextSplit(holder, currentPage, pageHeight);
+  const rebalancedSplitAt = rebalanceAdjacentText
+    ? rebalanceTextSplitIndex(
+        fullText.length,
+        measuredSplitAt,
+        32,
+        currentPage.childNodes.length > 0,
+      )
+    : measuredSplitAt;
+  const splitAt = rebalanceAdjacentText
+    ? fitSplitIndexToPage(
+        fullText,
+        holder,
+        currentPage,
+        pageHeight,
+        findPreferredTextSplitIndex(fullText, rebalancedSplitAt),
+      )
+    : rebalancedSplitAt;
+
+  if (splitAt === 0) {
+    return {
+      newPage: createNewPage(
+        wrapper,
+        pageHeight,
+        pageWidth,
+        getMeasuredPageIndex(currentPage),
+      ),
+      nodeToAdd: clone,
+    };
+  }
 
   const firstPart = holder.cloneNode(true) as HTMLElement;
   firstPart.textContent = fullText.slice(0, splitAt);

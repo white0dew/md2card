@@ -10,6 +10,7 @@ import {
   type MeasurementWrapper,
 } from "@/lib/pagination-card-measurement";
 import { groupNodesIntoSections } from "@/lib/pagination-groups";
+import { shouldFillUnderfilledPageWithText } from "@/lib/pagination-rules";
 import {
   addPageElement,
   canTextNodeSplitOnCurrentPage,
@@ -22,6 +23,8 @@ import {
   handleListNode,
   handleTableNode,
   handleTextNode,
+  isPageClearlyUnderfilled,
+  isSafelySplittableTextNode,
   isImage,
   isHeadingTagName,
   isList,
@@ -47,7 +50,7 @@ function canKeepHeadingSectionOnCurrentPage(
   if (
     section.length < 2 ||
     !isHeadingTagName(getNodeTagName(section[0])) ||
-    !isTextNodeLike(section[1])
+    !isSafelySplittableTextNode(section[1])
   ) {
     return false;
   }
@@ -224,7 +227,7 @@ export default function PaginatedMarkdownViewer({
                   const carryoverNodes = takeTrailingKeepWithNextNodes(currentPage, node);
                   const canKeepHeadingWithSplitText =
                     carryoverNodes.length > 0 &&
-                    isTextNodeLike(node) &&
+                    isSafelySplittableTextNode(node) &&
                     canTextNodeSplitOnCurrentPage(node, currentPage, pageHeight);
                   if (carryoverNodes.length > 0 && !canKeepHeadingWithSplitText) {
                     carryoverNodes.forEach((carryoverNode) => currentPage.removeChild(carryoverNode));
@@ -254,6 +257,29 @@ export default function PaginatedMarkdownViewer({
                     }
 
                     currentPage.removeChild(clone);
+                  }
+
+                  const incomingIsSafelySplittableText = isSafelySplittableTextNode(node);
+                  if (shouldFillUnderfilledPageWithText({
+                    canSplit: incomingIsSafelySplittableText && canTextNodeSplitOnCurrentPage(node, currentPage, pageHeight),
+                    hasExistingContent: currentPage.childNodes.length > 0,
+                    incomingIsSafelySplittableText,
+                    isClearlyUnderfilled: isPageClearlyUnderfilled(currentPage, pageHeight),
+                  })) {
+                    const result = handleTextNode(
+                      node,
+                      currentPage,
+                      wrapper,
+                      pageElements,
+                      CardComponent,
+                      pageHeight,
+                      pageWidth,
+                      true,
+                    );
+                    currentPage = result.newPage;
+                    currentPage.appendChild(result.nodeToAdd);
+                    nodeIndex += 1;
+                    continue;
                   }
 
                   if (
