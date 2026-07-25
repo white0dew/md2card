@@ -1,41 +1,49 @@
 #!/usr/bin/env tsx
 
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { HeadlessPage, withHeadlessPage } from "@/lib/headless-chromium";
 import { validateHeadlessInput, type ValidatedHeadlessInput } from "@/lib/headless-input";
 import { headlessStatusExpression } from "@/lib/headless-status";
 
 const browserUrl = process.env.IDEACARD_URL ?? "http://127.0.0.1:3000";
+const defaultInputPath = resolve(process.cwd(), ".agents/skills/ideacard/default-input.json");
 const renderReadyTimeoutMs = 30_000;
 const renderPollIntervalMs = 100;
 
 type Command = "render" | "validate";
-type CliOptions = { command: Command; outputDir?: string };
+type CliOptions = { command: Command; inputPath?: string; outputDir?: string; useStdin: boolean };
 type ExportedPage = { base64: string; height: number; width: number };
 
 function parseOptions(argv: string[]): CliOptions {
   const [command, ...flags] = argv;
-  if (command !== "render" && command !== "validate") throw new Error("用法: ideacard <render|validate> --stdin [--out <dir>]");
+  if (command !== "render" && command !== "validate") throw new Error("用法: ideacard <render|validate> (--stdin | --input <file.json>) [--out <dir>]");
   let stdin = false;
+  let inputPath: string | undefined;
   let outputDir: string | undefined;
   for (let index = 0; index < flags.length; index += 1) {
     if (flags[index] === "--stdin") stdin = true;
+    else if (flags[index] === "--input" && flags[index + 1]) {
+      inputPath = resolve(flags[index + 1]);
+      index += 1;
+    }
     else if (flags[index] === "--out" && flags[index + 1]) {
       outputDir = resolve(flags[index + 1]);
       index += 1;
     } else throw new Error(`未知或不完整的参数: ${flags[index]}`);
   }
-  if (!stdin) throw new Error("必须使用 --stdin 提供 JSON 输入。");
+  if (stdin && inputPath) throw new Error("--stdin 与 --input <file.json> 不能同时使用。");
   if (command === "render" && !outputDir) throw new Error("render 命令必须提供 --out <dir>。");
   if (command === "validate" && outputDir) throw new Error("validate 命令不接受 --out 参数。");
-  return { command, outputDir };
+  return { command, inputPath: inputPath ?? defaultInputPath, outputDir, useStdin: stdin };
 }
 
-async function readInput() {
-  let value = "";
-  for await (const chunk of process.stdin) value += chunk;
-  if (!value.trim()) throw new Error("标准输入中缺少 JSON 输入。");
+async function readInput(options: CliOptions) {
+  let value = options.useStdin ? "" : await readFile(options.inputPath as string, "utf8");
+  if (options.useStdin) {
+    for await (const chunk of process.stdin) value += chunk;
+  }
+  if (!value.trim()) throw new Error("JSON 输入为空。");
   return JSON.parse(value) as unknown;
 }
 
@@ -77,9 +85,9 @@ function exportExpression() {
   return "Promise.all(Array.from(document.querySelectorAll('.pages-wrapper > *')).map((_, index) => window.__ideacardExportPage(index)))";
 }
 
-async function render(input: ValidatedHeadlessInput, outputDir: string) {
+async function render(rawInput: unknown, input: ValidatedHeadlessInput, outputDir: string) {
   const pages = await withHeadlessPage(async (page) => {
-    await page.setPayload(input);
+    await page.setPayload(rawInput);
     await page.goto(new URL("/headless", browserUrl).toString());
     await waitForPage(page);
     return page.evaluate<ExportedPage[]>(exportExpression());
@@ -103,15 +111,17 @@ function inputSummary(input: ValidatedHeadlessInput) {
     canvas: input.canvas,
     output: input.output,
     security: input.security,
+    social: input.social,
     theme: input.theme,
   };
 }
 
 async function main() {
   const options = parseOptions(process.argv.slice(2));
-  const input = validateHeadlessInput(await readInput());
+  const rawInput = await readInput(options);
+  const input = validateHeadlessInput(rawInput);
   if (options.command === "validate") return { input: inputSummary(input), ok: true, valid: true };
-  const result = await render(input, options.outputDir as string);
+  const result = await render(rawInput, input, options.outputDir as string);
   return { manifest: result.manifest, manifestPath: result.manifestPath, ok: true };
 }
 

@@ -202,7 +202,7 @@ export default function HeadlessRenderer() {
     const CardComponent = cardComponents[input.theme].component;
     return function HeadlessCardComponent(props) {
       return (
-        <HeadlessSocialProfileProvider profile={input.profile}>
+          <HeadlessSocialProfileProvider profile={input.profile} presentation={input.social}>
           <CardComponent {...props} />
         </HeadlessSocialProfileProvider>
       );

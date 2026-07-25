@@ -96,6 +96,19 @@ pnpm verify:export -- --markdown /absolute/path/to/demo.md
 
 脚本会自动打开页面、注入 Markdown 和设置、触发导出、执行 OCR 对照，并生成 `report.json`、截图和导出文件。
 
+## 无头 CLI
+
+将 Markdown、主题、画布与素材配置保存为一个 JSON 文件后，可以无需编辑器直接生成图片：
+
+```bash
+pnpm run ideacard validate --input ./card.json
+pnpm run ideacard render --input ./card.json --out ./artifacts/card
+```
+
+不传输入参数时，CLI 默认读取 `.agents/skills/ideacard/default-input.json`；也支持 `--stdin`，但 `--input` 与 `--stdin` 只能二选一。图片素材需在 JSON 的 `assets` 中提供 Base64 数据，并在 Markdown 中使用 `asset://<id>` 引用。
+
+编辑器底部的“复制 Agent 配置”只复制当前主题、画布、排版和头像来源，不复制文章 Markdown。持久默认值保存在 `.agents/skills/ideacard/visual-config.json`；把复制结果更新到该文件后，agent 会将其与待生成的 Markdown 合并，并将头像或正文图片整理为 CLI 所需的 `assets` 和 `asset://` 引用。
+
 ## 开源协议
 
 MIT License

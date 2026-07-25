@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useState } from "react";
 import { configNames } from "@/lib/card-registry";
+import { buildAgentConfig } from "@/lib/agent-config";
 import {
   MAX_CARD_WIDTH,
   MIN_CARD_HEIGHT,
@@ -79,6 +80,7 @@ export default function SettingsSidebar() {
   const presetMeta = designPresets[selectedPreset];
   const avatarUploadId = useId();
   const [avatarError, setAvatarError] = useState<string | null>(null);
+  const [configStatus, setConfigStatus] = useState<"idle" | "copying" | "success" | "error">("idle");
   const [widthInput, setWidthInput] = useState(() => String(cardWidth));
   const [heightInput, setHeightInput] = useState(() => String(cardHeight));
   const resolvedSelectedTheme = resolveThemeName(selectedTheme);
@@ -163,6 +165,39 @@ export default function SettingsSidebar() {
       setAvatarError(null);
     } catch {
       setAvatarError("读取头像失败，请重试，或改用公网 URL。");
+    }
+  };
+
+  const handleCopyAgentConfig = async () => {
+    const config = buildAgentConfig({
+      cardHeight,
+      cardWidth,
+      selectedPreset,
+      selectedTheme: resolvedSelectedTheme,
+      socialAccentColor,
+      socialAvatarSize,
+      socialBackgroundColor,
+      socialFirstPageTopOffset,
+      socialFontPreset,
+      socialFontScale,
+      socialFontScaleMode,
+      socialLineHeight,
+      socialProfileName,
+      socialProfileAvatarUrl,
+      socialProfileTimeLabel: displayedSocialTimeLabel,
+      socialUseAutoTimeLabel,
+    });
+    try {
+      if (!navigator.clipboard?.writeText) {
+        throw new Error("当前浏览器不支持剪贴板写入。");
+      }
+
+      setConfigStatus("copying");
+      await navigator.clipboard.writeText(`${JSON.stringify(config, null, 2)}\n`);
+      setConfigStatus("success");
+      window.setTimeout(() => setConfigStatus("idle"), 2500);
+    } catch {
+      setConfigStatus("error");
     }
   };
 
@@ -511,6 +546,22 @@ export default function SettingsSidebar() {
             </details>
           </div>
         ) : null}
+
+        <div className="border-t border-slate-200 pt-5">
+          <button
+            className="w-full rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-800 transition hover:border-slate-500 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300"
+            disabled={configStatus === "copying"}
+            onClick={handleCopyAgentConfig}
+            type="button"
+          >
+            {configStatus === "copying" ? "复制中..." : configStatus === "success" ? "已复制到剪贴板" : "复制 Agent 配置"}
+          </button>
+          <p className="mt-2 text-xs leading-5 text-slate-500">
+            {configStatus === "error"
+              ? "复制失败，请检查浏览器剪贴板权限后重试。"
+              : "复制当前视觉配置与头像来源，直接发送给 agent 即可复用。"}
+          </p>
+        </div>
       </div>
     </aside>
   );

@@ -1,6 +1,6 @@
 ---
 name: ideacard
-description: Validate or render Markdown card pages with the ideacard headless CLI from one JSON object on stdin, without browser UI automation.
+description: Validate or render Markdown card pages with the ideacard headless CLI from a JSON file or stdin, without browser UI automation.
 ---
 
 # ideacard headless CLI
@@ -11,7 +11,10 @@ Use this skill when an agent needs PNG card pages from Markdown. Prefer this CLI
 
 - **Do not use browser UI automation**: no clicking the editor, `agent-browser`, Playwright, WebDriver, or custom CDP scripting. Pass JSON to the CLI; it owns its isolated Chromium session for `render`.
 - Validate the exact JSON first, then render it.
-- The CLI accepts exactly one JSON object from stdin, not a filename, flags containing content, or JSONL.
+- Read `.agents/skills/ideacard/visual-config.json` before preparing a card. It is the persisted visual configuration from the editor and intentionally has no article Markdown.
+- Without `--input` or `--stdin`, the CLI reads `.agents/skills/ideacard/default-input.json`. It provides a Markdown placeholder; merge the visual configuration into the final CLI input.
+- `--input <file.json>` overrides the default file; `--stdin` is reserved for generated input. The two input sources are mutually exclusive.
+- The website's `复制 Agent 配置` button exports the same visual-settings shape. It intentionally excludes article Markdown and includes `profile.avatarUrl`, which is the current avatar/cover-image source. Update `visual-config.json` with the copied JSON when changing the persisted default.
 
 ## Prerequisites
 
@@ -43,7 +46,16 @@ pnpm install
 
 ## Commands
 
-Only `validate` and `render` are supported. Both require `--stdin`; only `render` requires `--out <directory>`.
+Only `validate` and `render` are supported. They read the skill default JSON unless `--input <file.json>` or `--stdin` is supplied; only `render` requires `--out <directory>`.
+
+For repeatable local production, keep the Markdown and card parameters in a JSON file:
+
+```bash
+pnpm run ideacard validate --input ./card.json
+pnpm run ideacard render --input ./card.json --out "$PWD/artifacts/card"
+```
+
+`--stdin` remains useful for generated input in a shell pipeline:
 
 ```bash
 printf '%s\n' '{"markdown":"# A card\n\nValidated before rendering."}' \
@@ -73,6 +85,7 @@ All unlisted fields are rejected. `markdown` is the only required top-level fiel
 | `assets` | object keyed by asset id | Each value is `{ "mimeType": string, "base64": string }`. See asset rules below. |
 | `output` | object: `pixelRatio` | Optional; `pixelRatio` is a finite number from 1 to 3, default 2. |
 | `security` | object: `allowHtml`, `remoteImages` | `allowHtml` is boolean and defaults to `false`; if supplied, `remoteImages` may only be `"reject"`. |
+| `social` | object: `backgroundColor`, `accentColor`, `fontPreset`, `fontScaleMode`, `fontScale`, `lineHeight` | 社交图文的配色与排版。 |
 
 A complete image input has this shape (replace the sample Base64 with real image data when using another asset):
 

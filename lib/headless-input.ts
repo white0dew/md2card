@@ -9,6 +9,8 @@ import {
   type DesignPresetId,
 } from "@/lib/design-presets";
 import { defaultThemeName, selectableThemeNames, type SelectableThemeName } from "@/lib/theme-selection";
+import { resolveSocialNoteAccentColor, resolveSocialNoteBackgroundColor } from "@/lib/social-note-colors";
+import { resolveSocialNoteFontPreset, type SocialNoteFontPreset } from "@/lib/social-note-fonts";
 
 const assetIdPattern = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
 const base64Pattern = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
@@ -78,6 +80,16 @@ export interface ValidatedHeadlessInput {
   assets: Record<string, string>;
   output: { pixelRatio: number };
   security: { allowHtml: boolean };
+  social: HeadlessSocialPresentation;
+}
+
+export interface HeadlessSocialPresentation {
+  accentColor: string;
+  backgroundColor: string;
+  fontPreset: SocialNoteFontPreset;
+  fontScale: number;
+  fontScaleMode: "body" | "all";
+  lineHeight: number;
 }
 
 type MarkdownToken = {
@@ -467,9 +479,27 @@ function getSecurity(value: unknown) {
   return { allowHtml: security.allowHtml === true };
 }
 
+function getSocial(value: unknown): HeadlessSocialPresentation {
+  const social = value === undefined ? {} : getInputObject(value, "字段 social");
+  rejectUnknownFields(social, ["backgroundColor", "accentColor", "fontPreset", "fontScaleMode", "fontScale", "lineHeight"], "字段 social");
+  if (social.backgroundColor !== undefined && typeof social.backgroundColor !== "string") throw new Error("字段 social.backgroundColor 必须是字符串。");
+  if (social.accentColor !== undefined && typeof social.accentColor !== "string") throw new Error("字段 social.accentColor 必须是字符串。");
+  if (social.fontPreset !== undefined && typeof social.fontPreset !== "string") throw new Error("字段 social.fontPreset 必须是字符串。");
+  const fontScale = getBoundedNumber(social.fontScale, 0.85, 1.3, "social.fontScale") ?? 1;
+  const lineHeight = getBoundedNumber(social.lineHeight, 1.05, 1.6, "social.lineHeight") ?? 1.22;
+  return {
+    backgroundColor: resolveSocialNoteBackgroundColor(social.backgroundColor),
+    accentColor: resolveSocialNoteAccentColor(social.accentColor),
+    fontPreset: resolveSocialNoteFontPreset(social.fontPreset),
+    fontScale,
+    fontScaleMode: social.fontScaleMode === "all" ? "all" : "body",
+    lineHeight,
+  };
+}
+
 export function validateHeadlessInput(value: unknown): ValidatedHeadlessInput {
   const input = getInputObject(value);
-  rejectUnknownFields(input, ["markdown", "theme", "canvas", "profile", "assets", "output", "security"], "输入");
+  rejectUnknownFields(input, ["markdown", "theme", "canvas", "profile", "assets", "output", "security", "social"], "输入");
   const assets = getAssets(input.assets);
   const markdown = getMarkdown(input.markdown);
   validateMarkdownImages(markdown, assets);
@@ -481,6 +511,7 @@ export function validateHeadlessInput(value: unknown): ValidatedHeadlessInput {
     assets,
     output: getOutput(input.output),
     security: getSecurity(input.security),
+    social: getSocial(input.social),
   };
 }
 

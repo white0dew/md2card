@@ -21,7 +21,7 @@ import {
 import { splitSocialNoteTitle } from "@/lib/social-note-title";
 import useSettingsStore from "@/stores/settings-store";
 import { HeadlessSocialProfileContext } from "@/components/headless/headless-social-profile-context";
-import type { HeadlessProfile } from "@/lib/headless-input";
+import type { HeadlessProfile, HeadlessSocialPresentation } from "@/lib/headless-input";
 
 const DEFAULT_FONT_SCALE = 1;
 const BASE_PROFILE_NAME_FONT_SIZE = 22;
@@ -438,21 +438,19 @@ function StoredCard(props: CardProps) {
   }} />;
 }
 
-function HeadlessCard({ profile, ...props }: CardProps & { profile: HeadlessProfile }) {
+function HeadlessCard({ profile, presentation, ...props }: CardProps & {
+  profile: HeadlessProfile;
+  presentation: HeadlessSocialPresentation;
+}) {
   return <SocialCardBody {...props} presentation={{
     profile: resolveSocialProfile(profile),
-    backgroundColor: defaultSocialNoteBackgroundColor,
-    accentColor: defaultSocialNoteAccentColor,
-    fontPreset: "songti",
-    fontScaleMode: "body",
-    fontScale: DEFAULT_FONT_SCALE,
-    lineHeight: 1.22,
+    ...presentation,
   }} />;
 }
 
 const Card: FC<CardProps> = (props) => {
-  const headlessProfile = useContext(HeadlessSocialProfileContext);
-  return headlessProfile ? <HeadlessCard {...props} profile={headlessProfile} /> : <StoredCard {...props} />;
+  const headlessConfig = useContext(HeadlessSocialProfileContext);
+  return headlessConfig ? <HeadlessCard {...props} {...headlessConfig} /> : <StoredCard {...props} />;
 };
 
 const ThemeConfig: CardConfig = {

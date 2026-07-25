@@ -1,0 +1,27 @@
+{
+  "theme": "社交图文",
+  "canvas": {
+    "preset": "xiaohongshu",
+    "width": 440
+  },
+  "profile": {
+    "name": "青玉白露",
+    "avatarUrl": "/social-avatar.svg",
+    "firstPageTopOffset": 0,
+    "avatarSize": 52
+  },
+  "social": {
+    "backgroundColor": "#fffdf7",
+    "accentColor": "#171717",
+    "fontPreset": "songti",
+    "fontScaleMode": "body",
+    "fontScale": 1,
+    "lineHeight": 1.22
+  },
+  "output": {
+    "pixelRatio": 2
+  },
+  "security": {
+    "allowHtml": false
+  }
+}
